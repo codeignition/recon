@@ -9,13 +9,19 @@ import (
 	"log"
 
 	"github.com/hariharan-uno/recon/lsb"
+	"github.com/hariharan-uno/recon/memory"
 )
 
 func main() {
 	log.SetPrefix("recon: ")
-	d, err := lsb.CollectData()
+	lsbdata, err := lsb.CollectData()
 	if err != nil {
 		log.Println(err)
 	}
-	fmt.Printf("%v\n", d)
+	fmt.Printf("%v\n", lsbdata)
+	memdata, err := memory.CollectData()
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Printf("%v\n", memdata)
 }
