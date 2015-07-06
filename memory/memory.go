@@ -16,9 +16,14 @@ import (
 type Data map[string]interface{}
 
 func CollectData() (Data, error) {
+
+	// allocate memory
 	d := make(Data)
 	d["swap"] = make(map[string]string)
-	swap, _ := d["swap"].(map[string]string)
+
+	// cast interface{} to a map
+	swap := d["swap"].(map[string]string)
+
 	f, err := os.Open("/proc/meminfo")
 	if err != nil {
 		return d, err
