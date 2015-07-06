@@ -5,6 +5,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -14,14 +15,26 @@ import (
 
 func main() {
 	log.SetPrefix("recon: ")
+
 	lsbdata, err := lsb.CollectData()
 	if err != nil {
 		log.Println(err)
 	}
-	fmt.Printf("%v\n", lsbdata)
 	memdata, err := memory.CollectData()
 	if err != nil {
 		log.Println(err)
 	}
-	fmt.Printf("%v\n", memdata)
+
+	data := struct {
+		Lsb    lsb.Data    `json:"lsb"`
+		Memory memory.Data `json:"memory"`
+	}{
+		lsbdata,
+		memdata,
+	}
+	b, err := json.MarshalIndent(data, "", "\t")
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	fmt.Printf("%s\n", b)
 }
