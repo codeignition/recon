@@ -19,17 +19,11 @@ import (
 )
 
 // Data represents the lsb data.
-type Data struct {
-	ID,
-	Release,
-	Codename,
-	Description string
-}
+type Data map[string]string
 
 // CollectData collects the data and returns an error if any.
-func CollectData() (*Data, error) {
-	d := &Data{}
-
+func CollectData() (Data, error) {
+	d := make(Data)
 	if fileutil.Exists("/etc/lsb-release") {
 		f, err := os.Open("/etc/lsb-release")
 		if err != nil {
@@ -42,13 +36,13 @@ func CollectData() (*Data, error) {
 			k, v := l[0], l[1]
 			switch k {
 			case "DISTRIB_ID":
-				d.ID = v
+				d["id"] = v
 			case "DISTRIB_RELEASE":
-				d.Release = v
+				d["release"] = v
 			case "DISTRIB_CODENAME":
-				d.Codename = v
+				d["codename"] = v
 			case "DISTRIB_DESCRIPTION":
-				d.Description = strings.Trim(v, `"`)
+				d["description"] = strings.Trim(v, `"`)
 			}
 		}
 		if err := s.Err(); err != nil {
@@ -69,13 +63,13 @@ func CollectData() (*Data, error) {
 				k, v := l[0], strings.TrimSpace(l[1])
 				switch k {
 				case "Distributor ID":
-					d.ID = v
+					d["id"] = v
 				case "Release":
-					d.Release = v
+					d["release"] = v
 				case "Codename":
-					d.Codename = v
+					d["codename"] = v
 				case "Description":
-					d.Description = v
+					d["description"] = v
 				}
 			}
 		}
