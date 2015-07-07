@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/hariharan-uno/recon/blockdevice"
 	"github.com/hariharan-uno/recon/cpu"
 	"github.com/hariharan-uno/recon/lsb"
 	"github.com/hariharan-uno/recon/memory"
@@ -29,21 +30,28 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
+	blockdevicedata, err := blockdevice.CollectData()
+	if err != nil {
+		log.Println(err)
+	}
 
 	// The field names must begin with an uppercase letter for json encoding.
 	data := struct {
-		LSB    lsb.Data    `json:"lsb"`
-		Memory memory.Data `json:"memory"`
-		CPU    cpu.Data    `json:"cpu"`
+		LSB         lsb.Data         `json:"lsb"`
+		Memory      memory.Data      `json:"memory"`
+		CPU         cpu.Data         `json:"cpu"`
+		BlockDevice blockdevice.Data `json:"block_device"`
 	}{
 		lsbdata,
 		memdata,
 		cpudata,
+		blockdevicedata,
 	}
 
 	b, err := json.MarshalIndent(data, "", "\t")
 	if err != nil {
 		fmt.Println("error:", err)
 	}
+
 	fmt.Printf("%s\n", b)
 }
