@@ -66,7 +66,7 @@ func CollectData() (Data, error) {
 			d["slab"] = v
 		case "SReclaimable":
 			d["slab_reclaimable"] = v
-		case "Sunreclaim":
+		case "SUnreclaim":
 			d["slab_unreclaim"] = v
 		case "PageTables":
 			d["page_tables"] = v
