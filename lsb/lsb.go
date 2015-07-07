@@ -4,7 +4,7 @@
 
 // +build linux
 
-// lsb is used to identify the distribution being used
+// Package lsb is used to identify the distribution being used
 // and its compliance with Linux Standard Base.
 package lsb
 

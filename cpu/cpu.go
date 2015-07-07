@@ -4,7 +4,7 @@
 
 // +build linux
 
-// cpu gives various cpu stats.
+// Package cpu gives various CPU stats.
 package cpu
 
 import (
@@ -13,8 +13,10 @@ import (
 	"strings"
 )
 
+// Data represents the CPU data.
 type Data map[string]interface{}
 
+// CollectData collects the data and returns an error if any.
 func CollectData() (Data, error) {
 	d := make(Data)
 	f, err := os.Open("/proc/cpuinfo")

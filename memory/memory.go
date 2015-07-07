@@ -4,7 +4,7 @@
 
 // +build linux
 
-// memory provides different memory related data.
+// Package memory provides different memory related data.
 package memory
 
 import (
@@ -13,8 +13,10 @@ import (
 	"strings"
 )
 
+// Data represents the memory data.
 type Data map[string]interface{}
 
+// CollectData collects the data and returns an error if any.
 func CollectData() (Data, error) {
 
 	// allocate memory

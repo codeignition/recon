@@ -30,15 +30,17 @@ func main() {
 		log.Println(err)
 	}
 
+	// The field names must begin with an uppercase letter for json encoding.
 	data := struct {
-		Lsb    lsb.Data    `json:"lsb"`
+		LSB    lsb.Data    `json:"lsb"`
 		Memory memory.Data `json:"memory"`
-		Cpu    cpu.Data    `json:"cpu"`
+		CPU    cpu.Data    `json:"cpu"`
 	}{
 		lsbdata,
 		memdata,
 		cpudata,
 	}
+
 	b, err := json.MarshalIndent(data, "", "\t")
 	if err != nil {
 		fmt.Println("error:", err)
