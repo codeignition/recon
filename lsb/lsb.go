@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-// +build linux
-
 // Package lsb is used to identify the distribution being used
 // and its compliance with Linux Standard Base.
 package lsb
@@ -33,16 +31,18 @@ func CollectData() (Data, error) {
 		s := bufio.NewScanner(f)
 		for s.Scan() {
 			l := strings.Split(s.Text(), "=")
-			k, v := l[0], l[1]
-			switch k {
-			case "DISTRIB_ID":
-				d["id"] = v
-			case "DISTRIB_RELEASE":
-				d["release"] = v
-			case "DISTRIB_CODENAME":
-				d["codename"] = v
-			case "DISTRIB_DESCRIPTION":
-				d["description"] = strings.Trim(v, `"`)
+			if len(l) == 2 {
+				k, v := l[0], l[1]
+				switch k {
+				case "DISTRIB_ID":
+					d["id"] = v
+				case "DISTRIB_RELEASE":
+					d["release"] = v
+				case "DISTRIB_CODENAME":
+					d["codename"] = v
+				case "DISTRIB_DESCRIPTION":
+					d["description"] = strings.Trim(v, `"`)
+				}
 			}
 		}
 		if err := s.Err(); err != nil {
