@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/hariharan-uno/recon/blockdevice"
 	"github.com/hariharan-uno/recon/cpu"
@@ -40,19 +41,13 @@ func main() {
 		log.Println(err)
 	}
 
-	// The field names must begin with an uppercase letter for json encoding.
-	data := struct {
-		LSB         lsb.Data         `json:"lsb"`
-		Memory      memory.Data      `json:"memory"`
-		CPU         cpu.Data         `json:"cpu"`
-		BlockDevice blockdevice.Data `json:"block_device"`
-		Languages   languages.Data   `json:"languages"`
-	}{
-		LSB:         lsbdata,
-		Memory:      memdata,
-		CPU:         cpudata,
-		BlockDevice: blockdevicedata,
-		Languages:   langsdata,
+	data := map[string]interface{}{
+		"lsb":          lsbdata,
+		"memory":       memdata,
+		"cpu":          cpudata,
+		"block_device": blockdevicedata,
+		"languages":    langsdata,
+		"recon_time":   time.Now(),
 	}
 
 	b, err := json.MarshalIndent(data, "", "\t")
