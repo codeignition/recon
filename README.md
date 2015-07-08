@@ -18,8 +18,10 @@ go get github.com/hariharan-uno/recon
 Test whether its installed by running 
 
 ~~~sh
-recon
+recon -addr=":8080"
 ~~~
+
+and then open http://localhost:8080. If addr flag isn't specified, it serves on :3030.
 
 ### License
 
