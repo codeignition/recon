@@ -5,9 +5,9 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
+	"flag"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hariharan-uno/recon/blockdevice"
@@ -21,6 +21,24 @@ import (
 func main() {
 	log.SetPrefix("recon: ")
 
+	var addr = flag.String("addr", ":3030", "serve HTTP on `address`")
+	flag.Parse()
+
+	http.HandleFunc("/", reconHandler)
+	log.Fatal(http.ListenAndServe(*addr, nil))
+}
+
+func copyMap(from, to map[string]interface{}) {
+	for k, v := range from {
+		to[k] = v
+	}
+}
+
+// accumulateData accumulates data from all other packages.
+// We just log the error but don't expose it, as we want
+// to view memory data even if lsb data fails.
+// TODO: Is it the right way? Rethink?
+func accumulateData() map[string]interface{} {
 	lsbdata, err := lsb.CollectData()
 	if err != nil {
 		log.Println(err)
@@ -54,17 +72,5 @@ func main() {
 		"recon_time":   time.Now(),
 	}
 	copyMap(uptimedata, data) // uptime Data is not namespaced.
-
-	b, err := json.MarshalIndent(data, "", "\t")
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-
-	fmt.Printf("%s\n", b)
-}
-
-func copyMap(from, to map[string]interface{}) {
-	for k, v := range from {
-		to[k] = v
-	}
+	return data
 }
