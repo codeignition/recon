@@ -48,11 +48,11 @@ func main() {
 		BlockDevice blockdevice.Data `json:"block_device"`
 		Languages   languages.Data   `json:"languages"`
 	}{
-		lsbdata,
-		memdata,
-		cpudata,
-		blockdevicedata,
-		langsdata,
+		LSB:         lsbdata,
+		Memory:      memdata,
+		CPU:         cpudata,
+		BlockDevice: blockdevicedata,
+		Languages:   langsdata,
 	}
 
 	b, err := json.MarshalIndent(data, "", "\t")
