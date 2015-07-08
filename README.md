@@ -8,13 +8,13 @@ It is at a very early stage and not yet feature complete. So, obviously the APIs
 If you have Go installed and workspace setup,
 
 ~~~sh
-$ go get github.com/hariharan-uno/recon
+go get github.com/hariharan-uno/recon
 ~~~
 
 Test whether its installed by running 
 
 ~~~sh
-$ recon
+recon
 ~~~
 
 ### License
