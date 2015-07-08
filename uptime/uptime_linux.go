@@ -16,6 +16,7 @@ import (
 // Data holds uptime and idletime data.
 type Data map[string]interface{}
 
+// CollectData collects the data and returns an error if any.
 func CollectData() (Data, error) {
 	d := make(Data)
 	b, err := ioutil.ReadFile("/proc/uptime")
