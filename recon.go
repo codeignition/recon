@@ -11,6 +11,7 @@ import (
 
 	"github.com/hariharan-uno/recon/blockdevice"
 	"github.com/hariharan-uno/recon/cpu"
+	"github.com/hariharan-uno/recon/languages"
 	"github.com/hariharan-uno/recon/lsb"
 	"github.com/hariharan-uno/recon/memory"
 )
@@ -34,6 +35,10 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
+	langsdata, err := languages.CollectData()
+	if err != nil {
+		log.Println(err)
+	}
 
 	// The field names must begin with an uppercase letter for json encoding.
 	data := struct {
@@ -41,11 +46,13 @@ func main() {
 		Memory      memory.Data      `json:"memory"`
 		CPU         cpu.Data         `json:"cpu"`
 		BlockDevice blockdevice.Data `json:"block_device"`
+		Languages   languages.Data   `json:"languages"`
 	}{
 		lsbdata,
 		memdata,
 		cpudata,
 		blockdevicedata,
+		langsdata,
 	}
 
 	b, err := json.MarshalIndent(data, "", "\t")
