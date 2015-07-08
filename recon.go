@@ -15,6 +15,7 @@ import (
 	"github.com/hariharan-uno/recon/languages"
 	"github.com/hariharan-uno/recon/lsb"
 	"github.com/hariharan-uno/recon/memory"
+	"github.com/hariharan-uno/recon/uptime"
 )
 
 func main() {
@@ -40,7 +41,10 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
-
+	uptimedata, err := uptime.CollectData()
+	if err != nil {
+		log.Println(err)
+	}
 	data := map[string]interface{}{
 		"lsb":          lsbdata,
 		"memory":       memdata,
@@ -49,6 +53,7 @@ func main() {
 		"languages":    langsdata,
 		"recon_time":   time.Now(),
 	}
+	copyMap(uptimedata, data) // uptime Data is not namespaced.
 
 	b, err := json.MarshalIndent(data, "", "\t")
 	if err != nil {
@@ -56,4 +61,10 @@ func main() {
 	}
 
 	fmt.Printf("%s\n", b)
+}
+
+func copyMap(from, to map[string]interface{}) {
+	for k, v := range from {
+		to[k] = v
+	}
 }
