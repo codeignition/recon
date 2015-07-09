@@ -13,6 +13,7 @@ import (
 
 	"github.com/hariharan-uno/recon/blockdevice"
 	"github.com/hariharan-uno/recon/cpu"
+	"github.com/hariharan-uno/recon/initpackage"
 	"github.com/hariharan-uno/recon/languages"
 	"github.com/hariharan-uno/recon/lsb"
 	"github.com/hariharan-uno/recon/memory"
@@ -73,6 +74,7 @@ func accumulateData() map[string]interface{} {
 		"block_device": blockdevicedata,
 		"languages":    langsdata,
 		"recon_time":   time.Now(),
+		"init_package": initpackage.Name,
 	}
 	copyMap(uptimedata, data) // uptime Data is not namespaced.
 	return data
