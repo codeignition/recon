@@ -11,17 +11,22 @@ I can only test this on an Ubuntu machine. So, I implicitly added linux only bui
 
 If you have Go installed and workspace setup,
 
-~~~sh
+```sh
 go get github.com/hariharan-uno/recon
-~~~
+```
 
-Test whether its installed by running 
+Test whether its installed by running
 
-~~~sh
-recon -addr=":8080"
-~~~
+```
+recon
+```
 
-and then open http://localhost:8080. If addr flag isn't specified, it serves on :3030.
+and then open [http://localhost:3030?indent=1](http://localhost:3030?indent=1).
+
+You can also specify an `addr` flag with the port to serve on. e.g. `-addr=":8080"`.
+While debugging, the JSON output can be pretty dense and hard to read. So, the `?indent=1` query string
+directs the server to output pretty JSON. If it is consumed by another application, you need not
+append the `?indent=1` query string.
 
 ### License
 
