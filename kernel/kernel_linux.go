@@ -26,6 +26,9 @@ var unameArgs = map[string]string{
 // CollectData collects the data and returns an error if any.
 func CollectData() (Data, error) {
 	d := make(Data)
+	d["modules"] = make(map[string]interface{})
+	modules := d["modules"].(map[string]interface{})
+
 	for k, v := range unameArgs {
 		out, err := exec.Command("uname", v).Output()
 		if err != nil {
@@ -43,7 +46,7 @@ func CollectData() (Data, error) {
 		for _, line := range lines[1:] {
 			l := strings.Fields(line)
 			if len(l) >= 3 {
-				d[l[0]] = map[string]string{
+				modules[l[0]] = map[string]string{
 					"size":     l[1],
 					"refcount": l[2],
 				}
