@@ -6,10 +6,12 @@ package main
 
 import (
 	"log"
+	"os/user"
 	"time"
 
 	"github.com/hariharan-uno/recon/blockdevice"
 	"github.com/hariharan-uno/recon/cpu"
+	"github.com/hariharan-uno/recon/etc"
 	"github.com/hariharan-uno/recon/initpackage"
 	"github.com/hariharan-uno/recon/kernel"
 	"github.com/hariharan-uno/recon/languages"
@@ -58,6 +60,14 @@ func accumulateData() map[string]interface{} {
 	if err != nil {
 		log.Println(err)
 	}
+	currentUser, err := user.Current()
+	if err != nil {
+		log.Println(err)
+	}
+	etcdata, err := etc.CollectData()
+	if err != nil {
+		log.Println(err)
+	}
 	data := map[string]interface{}{
 		"lsb":          lsbdata,
 		"memory":       memdata,
@@ -68,6 +78,8 @@ func accumulateData() map[string]interface{} {
 		"recon_time":   time.Now(),
 		"init_package": initpackage.Name,
 		"command":      map[string]string{"ps": ps.Command},
+		"current_user": currentUser.Username, // if more data is required, use currentUser instead of just the Username field
+		"etc":          etcdata,
 	}
 	copyMap(uptimedata, data) // uptime Data is not namespaced.
 	return data
