@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hariharan-uno/recon/blockdevice"
+	"github.com/hariharan-uno/recon/counters"
 	"github.com/hariharan-uno/recon/cpu"
 	"github.com/hariharan-uno/recon/etc"
 	"github.com/hariharan-uno/recon/initpackage"
@@ -73,6 +74,10 @@ func accumulateData() map[string]interface{} {
 	if err != nil {
 		log.Println(err)
 	}
+	countersdata, err := counters.CollectData()
+	if err != nil {
+		log.Println(err)
+	}
 	data := map[string]interface{}{
 		"lsb":          lsbdata,
 		"memory":       memdata,
@@ -86,6 +91,7 @@ func accumulateData() map[string]interface{} {
 		"current_user": currentUser.Username, // if more data is required, use currentUser instead of just the Username field
 		"etc":          etcdata,
 		"network":      netdata,
+		"counters":     countersdata,
 	}
 	copyMap(uptimedata, data) // uptime Data is not namespaced.
 	return data
