@@ -48,7 +48,7 @@ func CollectData() (Data, error) {
 				}
 
 				if a[i] == "state" {
-					iface["state"] = a[i+1]
+					iface["state"] = strings.ToLower(a[i+1])
 				}
 			}
 			iface["addresses"] = make(map[string]interface{})
@@ -86,11 +86,23 @@ func CollectData() (Data, error) {
 							tempScope = scope(a[i+1])
 						}
 					}
-					addrs[ip.String()] = map[string]string{
-						"family":    "inet",
-						"prefixlen": strconv.Itoa(ones),
-						"scope":     tempScope,
-						"netmask":   net.IP(ipnet.Mask).String(), // by converting into IP type, we get the string in the form a.b.c.d
+					addrs[ip.String()] = make(map[string]string)
+					t := addrs[ip.String()].(map[string]string)
+					t["family"] = "inet"
+					t["prefixlen"] = strconv.Itoa(ones)
+					t["scope"] = tempScope
+
+					// by converting into IP type, we get the string in the form a.b.c.d
+					t["netmask"] = net.IP(ipnet.Mask).String()
+
+					for i := range a {
+						if a[i] == "brd" {
+							t["broadcast"] = a[i+1]
+						}
+
+						if a[i] == "peer" {
+							t["peer"] = a[i+1]
+						}
 					}
 				}
 			}
@@ -118,6 +130,10 @@ func CollectData() (Data, error) {
 		return d, err
 	}
 
+	if err := arp(d); err != nil {
+		return d, err
+	}
+
 	return d, nil
 }
 
@@ -128,6 +144,8 @@ func scope(s string) string {
 	return strings.Title(s)
 }
 
+// defaultGateway adds the default gateway and default interface
+// data to the given map.
 func defaultGateway(d Data) error {
 	out, err := exec.Command("route", "-n").Output()
 	if err != nil {
@@ -139,5 +157,25 @@ func defaultGateway(d Data) error {
 	a := strings.Fields(s[2])
 	d["default_gateway"] = a[1]
 	d["default_interface"] = a[7]
+	return nil
+}
+
+// arp adds the arp data to the given map.
+func arp(d Data) error {
+	out, err := exec.Command("arp", "-an").Output()
+	if err != nil {
+		return err
+	}
+	s := strings.Split(string(out), "\n")
+	for i := range s {
+		line := s[i]
+		// ? (192.164.1.1) at 48:f8:c3:46:03:44 [ether] on wlan
+		a := strings.Fields(line)
+		if len(a) >= 4 {
+			d["arp"] = map[string]string{
+				strings.Trim(a[1], "()"): a[3],
+			}
+		}
+	}
 	return nil
 }
