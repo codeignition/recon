@@ -12,6 +12,8 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/hariharan-uno/recon/internal/fileutil"
 )
 
 // Data represents the network data.
@@ -130,6 +132,16 @@ func CollectData() (Data, error) {
 		return d, err
 	}
 
+	if err := routes(d); err != nil {
+		return d, err
+	}
+
+	if err := neighbours(d); err != nil {
+		return d, err
+	}
+
+	// arp data is added in the neighbours function itself.
+	// If that fails, this one adds the arp data.
 	if err := arp(d); err != nil {
 		return d, err
 	}
@@ -177,5 +189,96 @@ func arp(d Data) error {
 			}
 		}
 	}
+	return nil
+}
+
+// ipv6Enabled returns true if IPv6 is enabled
+// on the machine.
+func ipv6Enabled() bool {
+	return fileutil.Exists("/proc/net/if_inet6")
+}
+
+// families to get default routes from.
+var families = []map[string]string{
+	{
+		"name":               "inet",
+		"defaultRoute":       "0.0.0.0/0",
+		"defaultPrefix":      "default",
+		"neighbourAttribute": "arp",
+	},
+}
+
+func init() {
+	if ipv6Enabled() {
+		families = append(families, map[string]string{
+			"name":               "inet6",
+			"defaultRoute":       "::/0",
+			"defaultPrefix":      "default_inet6",
+			"neighbourAttribute": "neighbour_inet6",
+		})
+	}
+}
+
+// neighbours adds the neighbours data of families to the given map.
+func neighbours(d Data) error {
+	for _, family := range families {
+		out, err := exec.Command("ip", "-f", family["name"], "neigh", "show").Output()
+		if err != nil {
+			return err
+		}
+		lines := strings.Split(string(out), "\n")
+		for _, line := range lines {
+			a := strings.Fields(line)
+			// 192.167.1.1 dev wlan0 lladdr 48:f8:b3:36:03:44 REACHABLE
+			// fe80::4af7:b3ff:fe36:344 dev wlan0 lladdr 48:f8:b3:36:06:44 router STALE
+			if len(a) >= 5 {
+				d[family["neighbourAttribute"]] = map[string]string{
+					a[0]: a[4],
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func routes(d Data) error {
+	var routes []map[string]string
+	for _, family := range families {
+		out, err := exec.Command("ip", "-o", "-f", family["name"], "route", "show").Output()
+		if err != nil {
+			return err
+		}
+		lines := strings.Split(string(out), "\n")
+		for _, line := range lines {
+			// default via 192.168.1.1 dev wlan0  proto static
+			// fd01:37b7:3570::/64 dev wlan0  proto kernel  metric 256  expires 6837sec mtu 1280
+			a := strings.Fields(line)
+			if len(a) >= 1 {
+				m := map[string]string{
+					"destination": a[0],
+					"family":      family["name"],
+				}
+				for i := range a {
+					switch a[i] {
+					case "via":
+						m["via"] = a[i+1]
+					case "src":
+						m["src"] = a[i+1]
+					case "proto":
+						m["proto"] = a[i+1]
+					case "metric":
+						m["metric"] = a[i+1]
+					case "scope":
+						m["scope"] = a[i+1]
+
+					}
+
+				}
+				routes = append(routes, m)
+			}
+
+		}
+	}
+	d["routes"] = routes
 	return nil
 }
