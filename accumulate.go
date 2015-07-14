@@ -13,6 +13,7 @@ import (
 	"github.com/hariharan-uno/recon/counters"
 	"github.com/hariharan-uno/recon/cpu"
 	"github.com/hariharan-uno/recon/etc"
+	"github.com/hariharan-uno/recon/filesystem"
 	"github.com/hariharan-uno/recon/initpackage"
 	"github.com/hariharan-uno/recon/kernel"
 	"github.com/hariharan-uno/recon/languages"
@@ -78,6 +79,10 @@ func accumulateData() map[string]interface{} {
 	if err != nil {
 		log.Println(err)
 	}
+	fsdata, err := filesystem.CollectData()
+	if err != nil {
+		log.Println(err)
+	}
 	data := map[string]interface{}{
 		"lsb":          lsbdata,
 		"memory":       memdata,
@@ -92,6 +97,7 @@ func accumulateData() map[string]interface{} {
 		"etc":          etcdata,
 		"network":      netdata,
 		"counters":     countersdata,
+		"filesystem":   fsdata,
 	}
 	copyMap(uptimedata, data) // uptime Data is not namespaced.
 	return data
