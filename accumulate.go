@@ -20,7 +20,6 @@ import (
 	"github.com/hariharan-uno/recon/lsb"
 	"github.com/hariharan-uno/recon/memory"
 	"github.com/hariharan-uno/recon/network"
-	"github.com/hariharan-uno/recon/ps"
 	"github.com/hariharan-uno/recon/uptime"
 )
 
@@ -92,7 +91,6 @@ func accumulateData() map[string]interface{} {
 		"kernel":       kerneldata,
 		"recon_time":   time.Now(),
 		"init_package": initpackage.Name,
-		"command":      map[string]string{"ps": ps.Command},
 		"current_user": currentUser.Username, // if more data is required, use currentUser instead of just the Username field
 		"etc":          etcdata,
 		"network":      netdata,
