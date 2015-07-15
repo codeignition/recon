@@ -19,6 +19,7 @@ import (
 	"github.com/hariharan-uno/recon/languages"
 	"github.com/hariharan-uno/recon/lsb"
 	"github.com/hariharan-uno/recon/memory"
+	"github.com/hariharan-uno/recon/netstat"
 	"github.com/hariharan-uno/recon/network"
 	"github.com/hariharan-uno/recon/ps"
 	"github.com/hariharan-uno/recon/uptime"
@@ -87,24 +88,29 @@ func accumulateData() map[string]interface{} {
 	if err != nil {
 		log.Println(err)
 	}
+	nsdata, err := netstat.CollectData()
+	if err != nil {
+		log.Println(err)
+	}
 	data := map[string]interface{}{
-		"lsb":          lsbdata,
-		"memory":       memdata,
-		"cpu":          cpudata,
-		"block_device": blockdevicedata,
-		"languages":    langsdata,
-		"kernel":       kerneldata,
-		"recon_time":   time.Now(),
-		"init_package": initpackage.Name,
-		"current_user": currentUser.Username, // if more data is required, use currentUser instead of just the Username field
-		"etc":          etcdata,
-		"network":      netdata,
-		"counters":     countersdata,
-		"filesystem":   fsdata,
-		"ipaddress":    network.IPV4Addr,
-		"ip6address":   network.IPV6Addr,
-		"macaddress":   network.MacAddr,
-		"ps":           psdata,
+		"lsb":                lsbdata,
+		"memory":             memdata,
+		"cpu":                cpudata,
+		"block_device":       blockdevicedata,
+		"languages":          langsdata,
+		"kernel":             kerneldata,
+		"recon_time":         time.Now(),
+		"init_package":       initpackage.Name,
+		"current_user":       currentUser.Username, // if more data is required, use currentUser instead of just the Username field
+		"etc":                etcdata,
+		"network":            netdata,
+		"counters":           countersdata,
+		"filesystem":         fsdata,
+		"ipaddress":          network.IPV4Addr,
+		"ip6address":         network.IPV6Addr,
+		"macaddress":         network.MacAddr,
+		"ps":                 psdata,
+		"network_statistics": nsdata,
 	}
 	copyMap(uptimedata, data) // uptime Data is not namespaced.
 	return data
