@@ -20,6 +20,7 @@ import (
 	"github.com/hariharan-uno/recon/lsb"
 	"github.com/hariharan-uno/recon/memory"
 	"github.com/hariharan-uno/recon/network"
+	"github.com/hariharan-uno/recon/ps"
 	"github.com/hariharan-uno/recon/uptime"
 )
 
@@ -82,6 +83,10 @@ func accumulateData() map[string]interface{} {
 	if err != nil {
 		log.Println(err)
 	}
+	psdata, err := ps.CollectData()
+	if err != nil {
+		log.Println(err)
+	}
 	data := map[string]interface{}{
 		"lsb":          lsbdata,
 		"memory":       memdata,
@@ -99,6 +104,7 @@ func accumulateData() map[string]interface{} {
 		"ipaddress":    network.IPV4Addr,
 		"ip6address":   network.IPV6Addr,
 		"macaddress":   network.MacAddr,
+		"ps":           psdata,
 	}
 	copyMap(uptimedata, data) // uptime Data is not namespaced.
 	return data
