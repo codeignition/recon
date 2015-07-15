@@ -16,6 +16,13 @@ import (
 	"github.com/hariharan-uno/recon/internal/fileutil"
 )
 
+// Network addresses
+var (
+	IPV4Addr string
+	IPV6Addr string
+	MacAddr  string
+)
+
 // Data represents the network data.
 type Data map[string]interface{}
 
@@ -146,6 +153,9 @@ func CollectData() (Data, error) {
 		return d, err
 	}
 
+	// last function to call as the data needs to be filled by
+	// the above function calls.
+	populateAddrs(d)
 	return d, nil
 }
 
@@ -169,7 +179,45 @@ func defaultGateway(d Data) error {
 	a := strings.Fields(s[2])
 	d["default_gateway"] = a[1]
 	d["default_interface"] = a[7]
+
+	out, err = exec.Command("route", "-6", "-n").Output()
+	if err != nil {
+		return err
+	}
+	lines := strings.Split(string(out), "\n")
+	// lines[0] is the title, lines[1] is the column headings.
+	for _, line := range lines[2:] {
+		a := strings.Fields(line)
+		if len(a) >= 7 {
+			if a[1] != "::" {
+				d["default_inet6_gateway"] = a[1]
+				d["default_inet6_interface"] = a[6]
+				break
+			}
+		}
+	}
 	return nil
+}
+
+// populateAddrs populates the address variables
+// exported by the package.
+func populateAddrs(d Data) {
+	iface := d["default_interface"].(string)
+	ifaces := d["interfaces"].(map[string]interface{})
+	ifaceMap := ifaces[iface].(map[string]interface{})
+	addresses := ifaceMap["addresses"].(map[string]interface{})
+	for k, val := range addresses {
+		v := val.(map[string]string)
+		if v["family"] == "inet" {
+			IPV4Addr = k
+		}
+		if v["family"] == "inet6" {
+			IPV6Addr = k
+		}
+		if v["family"] == "lladdr" {
+			MacAddr = k
+		}
+	}
 }
 
 // arp adds the arp data to the given map.
@@ -274,6 +322,7 @@ func routes(d Data) error {
 					}
 
 				}
+
 				routes = append(routes, m)
 			}
 
