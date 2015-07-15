@@ -98,6 +98,9 @@ func accumulateData() map[string]interface{} {
 		"network":      netdata,
 		"counters":     countersdata,
 		"filesystem":   fsdata,
+		"ipaddress":    network.IPV4Addr,
+		"ip6address":   network.IPV6Addr,
+		"macaddress":   network.MacAddr,
 	}
 	copyMap(uptimedata, data) // uptime Data is not namespaced.
 	return data
