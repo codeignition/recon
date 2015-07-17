@@ -17,12 +17,12 @@ import (
 )
 
 // Data represents processes data.
-type Data map[string][]map[string]string
+type Data []map[string]string
 
 // CollectData collects the data and returns
 // an error if any.
 func CollectData() (Data, error) {
-	d := make(Data)
+	var d Data
 	out, err := exec.Command("ps", "aux").Output()
 	if err != nil {
 		return d, err
@@ -36,15 +36,8 @@ func CollectData() (Data, error) {
 	for _, line := range lines[1:] {
 		a := strings.Fields(line)
 		if len(a) >= 10 {
-			// We namespace the processes by the user
-			user := a[0]
-			if _, ok := d[user]; !ok {
-				// we don't know how many processes are going to be there for this user,
-				// so we can't allocate the slice using make. The only option is to use
-				// append.
-				d[user] = []map[string]string{}
-			}
 			m := map[string]string{
+				"user":                       a[0],
 				"process_id":                 a[1],
 				"percentage_cpu_used":        a[2],
 				"percentage_mem_used":        a[3],
@@ -56,7 +49,7 @@ func CollectData() (Data, error) {
 				"total_cpu_utilization_time": a[9],
 				"command":                    strings.Join(a[10:], " "),
 			}
-			d[user] = append(d[user], m)
+			d = append(d, m)
 		}
 	}
 

@@ -5,20 +5,49 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
+
+// metricsPath in the master server
+const metricsPath = "/metrics"
 
 func main() {
 	log.SetPrefix("recon: ")
 
-	var addr = flag.String("addr", ":3030", "serve HTTP on `address`")
+	var masterAddr = flag.String("masterAddr", "http://localhost:3000", "address of the recon-master server (along with protocol)")
 	flag.Parse()
 
-	http.HandleFunc("/", reconHandler)
-	fmt.Printf("recon: starting the server on http://localhost%s\n", *addr)
-	fmt.Printf("recon: if you'd like the JSON to be indented, append %q to the above URL\n", "?indent=1")
-	log.Fatal(http.ListenAndServe(*addr, nil))
+	c := time.Tick(5 * time.Second)
+	for now := range c {
+		log.Println("Update sent at", now)
+		if err := update(*masterAddr); err != nil {
+			log.Println(err)
+		}
+	}
+}
+
+func update(addr string) error {
+	var buf bytes.Buffer
+	d := map[string]map[string]interface{}{
+		"metric": {
+			"data": accumulateData(),
+		},
+	}
+	if err := json.NewEncoder(&buf).Encode(&d); err != nil {
+		return err
+	}
+	resp, err := http.Post(addr+metricsPath, "application/json", &buf)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("response status code not %d; response is %v\n", http.StatusOK, resp)
+	}
+	return nil
 }

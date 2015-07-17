@@ -19,12 +19,12 @@ import (
 )
 
 // Data represents the network statistics data.
-type Data map[string][]map[string]string
+type Data []map[string]string
 
 // CollectData collects the data and returns
 // an error if any.
 func CollectData() (Data, error) {
-	d := make(Data)
+	var d Data
 	out, err := exec.Command("netstat", "-anp").Output()
 	if err != nil {
 		return d, err
@@ -56,14 +56,18 @@ func CollectData() (Data, error) {
 		}
 
 		if connType == "internet" {
-			internetConn(d, line)
+			internetConn(&d, line)
 		}
 
 	}
 	return d, nil
 }
 
-func internetConn(d Data, line string) {
+// internetConn handles the lines under the section "Active Internet Connections"
+// in the output of `netstat -anp`.
+// We use *Data as we are appending in the function, thereby changing its internal
+// length.
+func internetConn(d *Data, line string) {
 	// Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
 	// tcp        0      0 127.0.1.1:53            0.0.0.0:*               LISTEN      -
 	// udp        0      0 0.0.0.0:631             0.0.0.0:*                           -
@@ -101,22 +105,13 @@ func internetConn(d Data, line string) {
 		}
 	}
 
-	// We namespace the connections with the protocol
-
-	proto := a[0] // protocol e.g. tcp, udp, tcp6
-	if _, ok := d[proto]; !ok {
-		// we don't know how many processes are going to be there for this user,
-		// so we can't allocate the slice using make. The only option is to use
-		// append.
-		d[proto] = []map[string]string{}
-	}
-
 	m := map[string]string{
+		"protocol":        a[0],
 		"local_address":   a[3],
 		"foreign_address": a[4],
 		"state":           state,
 		"process_id":      pid,
 		"program_name":    progname,
 	}
-	d[proto] = append(d[proto], m)
+	*d = append(*d, m)
 }
