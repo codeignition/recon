@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hariharan-uno/recon/internal/fileutil"
+	"github.com/codeignition/recon/internal/fileutil"
 )
 
 // Network addresses

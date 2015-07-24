@@ -12,7 +12,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/hariharan-uno/recon/internal/fileutil"
+	"github.com/codeignition/recon/internal/fileutil"
 )
 
 // Data represents the filesystem data.

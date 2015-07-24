@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hariharan-uno/recon/internal/fileutil"
+	"github.com/codeignition/recon/internal/fileutil"
 )
 
 // Data represents the block devices data.
