@@ -34,10 +34,8 @@ func main() {
 
 func update(addr string) error {
 	var buf bytes.Buffer
-	d := map[string]map[string]interface{}{
-		"metric": {
-			"data": accumulateData(),
-		},
+	d := map[string]interface{}{
+		"metric": accumulateData(),
 	}
 	if err := json.NewEncoder(&buf).Encode(&d); err != nil {
 		return err

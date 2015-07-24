@@ -9,8 +9,8 @@ import (
 	"os/user"
 	"time"
 
-	"github.com/hariharan-uno/recon/netstat"
-	"github.com/hariharan-uno/recon/ps"
+	"github.com/codeignition/recon/netstat"
+	"github.com/codeignition/recon/ps"
 )
 
 func copyMap(from, to map[string]interface{}) {
@@ -36,7 +36,7 @@ func accumulateData() map[string]interface{} {
 	data := map[string]interface{}{
 		"recon_time":         time.Now(),
 		"current_user":       currentUser.Username, // if more data is required, use currentUser instead of just the Username field
-		"ps":                 psdata,
+		"process_statistics": psdata,
 		"network_statistics": nsdata,
 	}
 	return data
