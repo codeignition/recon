@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -87,7 +88,14 @@ func registerAgent(addr, uid string) error {
 	if err := json.NewEncoder(&buf).Encode(&d); err != nil {
 		return err
 	}
-	resp, err := http.Post(addr+agentsPath, "application/json", &buf)
+
+	// url.Parse instead of just appending will inform
+	// about errors if the code changes and the url is malformed.
+	l, err := url.Parse(addr + agentsPath)
+	if err != nil {
+		return err
+	}
+	resp, err := http.Post(l.String(), "application/json", &buf)
 	if err != nil {
 		return err
 	}
@@ -116,7 +124,12 @@ func update(addr string) error {
 	if err := json.NewEncoder(&buf).Encode(&d); err != nil {
 		return err
 	}
-	resp, err := http.Post(addr+metricsPath, "application/json", &buf)
+
+	l, err := url.Parse(addr + metricsPath)
+	if err != nil {
+		return err
+	}
+	resp, err := http.Post(l.String(), "application/json", &buf)
 	if err != nil {
 		return err
 	}
