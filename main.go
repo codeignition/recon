@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -102,7 +103,11 @@ func registerAgent(addr, uid string) error {
 	defer resp.Body.Close()
 
 	// TODO: Don't print the response, but store the messaging server URL and subscribe to it.
-	fmt.Printf("%s\n", resp.Body)
+	contents, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%s\n", string(contents))
 	return nil
 }
 
