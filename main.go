@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -22,8 +21,8 @@ import (
 )
 
 const (
-	metricsPath = "/metrics" // metrics path in the master server
-	agentsPath  = "/agents"  // agents path in the master server
+	metricsPath = "/metrics.json" // metrics path in the master server
+	agentsPath  = "/agents.json"  // agents path in the master server
 )
 
 // config file path in the local machine
@@ -79,13 +78,23 @@ func main() {
 }
 
 func registerAgent(addr, uid string) error {
-	resp, err := http.PostForm(addr+agentsPath, url.Values{"uid": []string{uid}})
+	var buf bytes.Buffer
+	d := map[string]interface{}{
+		"agent": map[string]string{
+			"uid": uid,
+		},
+	}
+	if err := json.NewEncoder(&buf).Encode(&d); err != nil {
+		return err
+	}
+	resp, err := http.Post(addr+agentsPath, "application/json", &buf)
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("response status code not %d; response is %v\n", http.StatusOK, resp)
-	}
+	defer resp.Body.Close()
+
+	// TODO: Don't print the response, but store the messaging server URL and subscribe to it.
+	fmt.Printf("%s\n", resp.Body)
 	return nil
 }
 
@@ -111,8 +120,8 @@ func update(addr string) error {
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("response status code not %d; response is %v\n", http.StatusOK, resp)
+	if resp.StatusCode != http.StatusCreated {
+		return fmt.Errorf("response status code not %d; response is %v\n", http.StatusCreated, resp)
 	}
 	return nil
 }
