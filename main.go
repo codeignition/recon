@@ -37,6 +37,8 @@ func init() {
 	}
 	configPath = filepath.Join(usr.HomeDir, ".recon")
 	if fileutil.Exists(configPath) {
+		// TODO: Here we are deleting the file, while development.
+		// Change the logic to get the uid from this file later.
 		err := os.Remove(configPath)
 		if err != nil {
 			log.Fatalln(err)
