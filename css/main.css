@@ -1,0 +1,88 @@
+body {
+    font-family: Raleway, Arial;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+    url("../images/recon-bg.png");
+}
+
+
+.container {
+    color: #fff;
+}
+
+.recon-logo {
+    margin-top: 5%;
+    margin-bottom: 3%;
+}
+
+.landing-heading {
+    font-size: 40px;
+    font-weight: 700;
+    color: #d8d8d8;
+}
+
+.landing-more {
+    font-weight: 500;
+    font-size: 21px;
+    padding-left: 10%;
+    padding-right: 10%;
+}
+
+.landing-call {
+    font-weight: 500;
+    font-size: 21px;  
+}
+
+.more-link a{
+color: #0090a8;
+}
+
+.landing-form input{
+    height: 36px;
+    border-radius: 4px;
+}
+
+.landing-green {
+    color: #20ac5d;
+}
+
+.btn-landing {
+    background-color: #0090a8;
+    border: 2px solid #0090a8;
+    color: #fff;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.btn-landing:hover {
+    background-color: #057487;
+    border: 2px solid #ccc;
+    color: #fff;
+}
+
+.btn-landing:active {
+    background-color: #057487;
+    border: 2px solid #0090a8;
+    color: #fff;
+}
+
+.btn-landing:focus {
+    background-color: #057487;
+    border: 2px solid #0090a8;
+    color: #fff;
+}
+
+.footer {
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 100px;
+  padding: 40px;
+  background-color: #020202;
+  font-weight: 400;
+  font-size: 16px;
+  color: #84888d;
+}
+
+.footer a {
+    color: #0090a8;
+}
