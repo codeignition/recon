@@ -23,8 +23,8 @@ import (
 )
 
 const (
-	metricsPath = "/metrics.json" // metrics path in the master server
-	agentsPath  = "/agents.json"  // agents path in the master server
+	metricsAPIPath = "/api/metrics" // metrics path in the master server
+	agentsAPIPath  = "/api/agents"  // agents path in the master server
 )
 
 // config file path in the local machine
@@ -81,20 +81,22 @@ func main() {
 	}
 }
 
+// Agent represents a recon agent running on
+// a machine.
+type Agent struct {
+	UID string
+}
+
 func registerAgent(addr, uid string) error {
 	var buf bytes.Buffer
-	d := map[string]interface{}{
-		"agent": map[string]string{
-			"uid": uid,
-		},
-	}
-	if err := json.NewEncoder(&buf).Encode(&d); err != nil {
+	a := Agent{UID: uid}
+	if err := json.NewEncoder(&buf).Encode(&a); err != nil {
 		return err
 	}
 
 	// url.Parse instead of just appending will inform
 	// about errors if the code changes and the url is malformed.
-	l, err := url.Parse(addr + agentsPath)
+	l, err := url.Parse(addr + agentsAPIPath)
 	if err != nil {
 		return err
 	}
@@ -114,7 +116,7 @@ func registerAgent(addr, uid string) error {
 }
 
 func generateUID() (string, error) {
-	b := make([]byte, 4)
+	b := make([]byte, 6)
 	_, err := rand.Read(b)
 	if err != nil {
 		return "", err
@@ -132,7 +134,7 @@ func update(addr string) error {
 		return err
 	}
 
-	l, err := url.Parse(addr + metricsPath)
+	l, err := url.Parse(addr + metricsAPIPath)
 	if err != nil {
 		return err
 	}
