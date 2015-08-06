@@ -29,7 +29,7 @@ body {
 
 .landing-call {
     font-weight: 500;
-    font-size: 21px;  
+    font-size: 18px;
 }
 
 .more-link a{
@@ -43,6 +43,14 @@ color: #0090a8;
 
 .landing-green {
     color: #20ac5d;
+}
+
+#landing-success-message {
+    display: none;
+}
+
+#landing-failure-message {
+    display: none;
 }
 
 .btn-landing {
