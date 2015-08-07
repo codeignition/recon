@@ -69,45 +69,46 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	if err := registerAgent(*masterAddr, uid); err != nil {
+	a, err := registerAgent(*masterAddr, uid)
+	if err != nil {
 		log.Fatalln(err)
 	}
 
 	c := time.Tick(5 * time.Second)
 	for now := range c {
 		log.Println("Update sent at", now)
-		if err := update(*masterAddr); err != nil {
+		if err := update(*masterAddr, a); err != nil {
 			log.Println(err)
 		}
 	}
 }
 
-func registerAgent(addr, uid string) error {
+func registerAgent(addr, uid string) (*recon.Agent, error) {
 	var buf bytes.Buffer
-	a := recon.Agent{UID: uid}
-	if err := json.NewEncoder(&buf).Encode(&a); err != nil {
-		return err
+	a := &recon.Agent{UID: uid}
+	if err := json.NewEncoder(&buf).Encode(a); err != nil {
+		return nil, err
 	}
 
 	// url.Parse instead of just appending will inform
 	// about errors if the code changes and the url is malformed.
 	l, err := url.Parse(addr + agentsAPIPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	resp, err := http.Post(l.String(), "application/json", &buf)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	// TODO: Don't print the response, but store the messaging server URL and subscribe to it.
 	contents, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	fmt.Printf("%s\n", string(contents))
-	return nil
+	return a, nil
 }
 
 func generateUID() (string, error) {
@@ -120,11 +121,10 @@ func generateUID() (string, error) {
 	return uid, nil
 }
 
-func update(addr string) error {
+func update(addr string, a *recon.Agent) error {
 	var buf bytes.Buffer
-	d := map[string]interface{}{
-		"metric": accumulateData(),
-	}
+	d := accumulateData()
+	d["recon_uid"] = a.UID
 	if err := json.NewEncoder(&buf).Encode(&d); err != nil {
 		return err
 	}
