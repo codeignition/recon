@@ -9,8 +9,8 @@ import (
 	"os/user"
 	"time"
 
-	"github.com/codeignition/recon/netstat"
-	"github.com/codeignition/recon/ps"
+	"github.com/codeignition/recon/metrics/netstat"
+	"github.com/codeignition/recon/metrics/ps"
 )
 
 func copyMap(from, to map[string]interface{}) {
