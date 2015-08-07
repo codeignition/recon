@@ -12,13 +12,13 @@ The project is tested only on linux, specifically Ubuntu 14.04. So, It may not w
 If you have Go installed and workspace setup,
 
 ```sh
-go get github.com/codeignition/recon
+go get github.com/codeignition/recon/...
 ```
 
 Test whether its installed by running
 
 ```
-recon
+recond
 ```
 
 ### License
