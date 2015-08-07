@@ -19,6 +19,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/codeignition/recon"
 	"github.com/codeignition/recon/internal/fileutil"
 )
 
@@ -81,15 +82,9 @@ func main() {
 	}
 }
 
-// Agent represents a recon agent running on
-// a machine.
-type Agent struct {
-	UID string
-}
-
 func registerAgent(addr, uid string) error {
 	var buf bytes.Buffer
-	a := Agent{UID: uid}
+	a := recon.Agent{UID: uid}
 	if err := json.NewEncoder(&buf).Encode(&a); err != nil {
 		return err
 	}
