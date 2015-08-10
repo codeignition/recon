@@ -1,5 +1,5 @@
 # Recon
-<a href="www.reconapp.io" target="_blank">Recon</a> is an Open-source IT infrastructue & services monitoring tool. Our goal is to make an open-source tool that does what SaaS tools do, is easy to use, and is intelligent in its configurations, analytics and alerting.
+Recon is an Open-source IT infrastructue & services monitoring tool. Our goal is to make an open-source tool that does what SaaS tools do, is easy to use, and is intelligent in its configurations, analytics and alerting.
 
 ### Release
 
