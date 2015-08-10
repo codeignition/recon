@@ -18,7 +18,7 @@ body {
 
 .recon-logo {
     margin-top: 30px;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
     text-align: center;
 }
 
@@ -102,6 +102,12 @@ body {
     background-color: #057487;
     border: 2px solid #0090a8;
     color: #fff;
+}
+
+.btn-repo-github {
+    height: 100px;
+    padding-top: 25px;
+    font-size: 30px;
 }
 
 .footer {
