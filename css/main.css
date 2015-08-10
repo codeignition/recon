@@ -19,12 +19,14 @@ body {
 .recon-logo {
     margin-top: 30px;
     margin-bottom: 30px;
+    text-align: center;
 }
 
 .landing-heading {
     font-size: 35px;
     font-weight: 700;
     color: #d8d8d8;
+    text-align: center;
 }
 
 .landing-description {
@@ -51,7 +53,13 @@ body {
 }
 
 .landing-call {
+    font-size: 14px;
+    text-align: center;
+}
+
+.landing-hint {
     font-size: 15px;
+    text-align: center;
 }
 
 .landing-form input{
