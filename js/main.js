@@ -1,9 +1,13 @@
 function postContactToGoogle() {
     var email = $('#user_email').val();
-    console.log(email);
+    var message = $('#user_message').val();
+    console.log(email, message);
     var request = $.ajax({
-	url: "https://docs.google.com/a/codeignition.co/forms/d/1tt-eSxJ1oG_3W2gU2tvdeK9SGsU4_n44DH3tNeYiZqM/formResponse",
-        data: {"entry.440186902" : email},
+	url: "https://docs.google.com/a/codeignition.co/forms/d/1wfr8OXaNiCSYR6E-P7NALnLjx-cS2gyNvekL82ArBv8/formResponse",
+        data: {
+	    "entry.596447052" : email,
+	    "entry.1743652851" : message
+	},
         type: "POST",
         dataType: "xml",
 	statusCode: {
