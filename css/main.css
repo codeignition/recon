@@ -73,10 +73,12 @@ body {
 
 #landing-success-message {
     display: none;
+    text-align: center;
 }
 
 #landing-failure-message {
     display: none;
+    text-align: center;
 }
 
 .btn-landing {
