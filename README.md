@@ -1,11 +1,9 @@
-# recon
-A monitoring agent for linux.
+# Recon
+Open-source IT infrastructue & services monitoring. Our goal is to make an open-source tool that does what SaaS tools do, is easy to use, and is intelligent in its configurations, analytics and alerting.
 
-It is at a very early stage and not yet feature complete. So, obviously the APIs are going to change every day. So don't use it for anything important.
+### Release
 
-### Disclaimer
-
-The project is tested only on linux, specifically Ubuntu 14.04. So, It may not work on your machine.
+We are still in the early stages of development & will release a production ready build by September 2016. Follow the instructions below to install & try Recon. 
 
 ### Installation
 
@@ -15,7 +13,7 @@ If you have Go installed and workspace setup,
 go get github.com/codeignition/recon/...
 ```
 
-Test whether its installed by running
+Test installation by running
 
 ```
 recond
@@ -24,3 +22,12 @@ recond
 ### License
 
 BSD 3-clause "New" or "Revised" license
+
+### Disclaimer
+
+So far the project is tested only on linux, specifically Ubuntu 14.04.
+
+### Contact
+
+Check out the issues section to join a conversation or to start one.
+
