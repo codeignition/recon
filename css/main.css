@@ -4,7 +4,7 @@ html {
 }
 
 body {
-    font-family: Raleway, Arial;
+    font-family: 'Source Sans Pro', Arial;
     background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
     url("../images/recon-bg.png");
     /* Margin bottom by footer height */
@@ -50,12 +50,7 @@ body {
 }
 
 .landing-call {
-    font-weight: 500;
     font-size: 18px;
-}
-
-.more-link a{
-    color: #0090a8;
 }
 
 .landing-form input{
