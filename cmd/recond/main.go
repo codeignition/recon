@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -47,8 +48,12 @@ func init() {
 	}
 }
 
+// Agent is just recon.Agent. It has a separate type to
+// add methods to it.
+type Agent recon.Agent
+
 func main() {
-	log.SetPrefix("recon: ")
+	log.SetPrefix("recond: ")
 
 	var masterAddr = flag.String("masterAddr", "http://localhost:3000", "address of the recon-master server (along with protocol)")
 	flag.Parse()
@@ -69,7 +74,13 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	a, err := registerAgent(*masterAddr, uid)
+	// agent represents a single agent on which the recond
+	// is running.
+	var agent = &Agent{
+		UID: uid,
+	}
+
+	err = agent.register(*masterAddr)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -77,38 +88,41 @@ func main() {
 	c := time.Tick(5 * time.Second)
 	for now := range c {
 		log.Println("Update sent at", now)
-		if err := update(*masterAddr, a); err != nil {
+		if err := agent.update(*masterAddr); err != nil {
 			log.Println(err)
 		}
 	}
 }
 
-func registerAgent(addr, uid string) (*recon.Agent, error) {
+func (a *Agent) register(addr string) error {
+	if a.UID == "" {
+		return errors.New("UID can't be empty")
+	}
+
 	var buf bytes.Buffer
-	a := &recon.Agent{UID: uid}
 	if err := json.NewEncoder(&buf).Encode(a); err != nil {
-		return nil, err
+		return err
 	}
 
 	// url.Parse instead of just appending will inform
-	// about errors if the code changes and the url is malformed.
+	// about errors when addr or path is malformed.
 	l, err := url.Parse(addr + agentsAPIPath)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	resp, err := http.Post(l.String(), "application/json", &buf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer resp.Body.Close()
 
 	// TODO: Don't print the response, but store the messaging server URL and subscribe to it.
 	contents, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	fmt.Printf("%s\n", string(contents))
-	return a, nil
+	return nil
 }
 
 func generateUID() (string, error) {
@@ -121,11 +135,15 @@ func generateUID() (string, error) {
 	return uid, nil
 }
 
-func update(addr string, a *recon.Agent) error {
+func (a *Agent) update(addr string) error {
 	var buf bytes.Buffer
-	d := accumulateData()
-	d["recon_uid"] = a.UID
-	if err := json.NewEncoder(&buf).Encode(&d); err != nil {
+
+	m := recon.Metric{
+		AgentUID: a.UID,
+		Data:     accumulateData(),
+	}
+
+	if err := json.NewEncoder(&buf).Encode(&m); err != nil {
 		return err
 	}
 
@@ -138,7 +156,12 @@ func update(addr string, a *recon.Agent) error {
 		return err
 	}
 	if resp.StatusCode != http.StatusCreated {
-		return fmt.Errorf("response status code not %d; response is %v\n", http.StatusCreated, resp)
+		defer resp.Body.Close()
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("response status code not %d; response body: %s\n", http.StatusCreated, b)
 	}
 	return nil
 }
