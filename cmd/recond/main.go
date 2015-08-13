@@ -22,12 +22,17 @@ import (
 
 	"github.com/codeignition/recon"
 	"github.com/codeignition/recon/internal/fileutil"
+	"github.com/nats-io/nats"
 )
 
 const (
 	metricsAPIPath = "/api/metrics" // metrics path in the master server
 	agentsAPIPath  = "/api/agents"  // agents path in the master server
 )
+
+// natsEncConn is the opened with the URL obtained from marksman.
+// It is populated if the agent registers successfully.
+var natsEncConn *nats.EncodedConn
 
 // config file path in the local machine
 var configPath string
@@ -85,6 +90,12 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	defer natsEncConn.Close()
+
+	natsEncConn.Subscribe(agent.UID, func(s string) {
+		fmt.Printf("Received a message: %s\n", s)
+	})
+
 	c := time.Tick(5 * time.Second)
 	for now := range c {
 		log.Println("Update sent at", now)
@@ -116,12 +127,22 @@ func (a *Agent) register(addr string) error {
 	}
 	defer resp.Body.Close()
 
-	// TODO: Don't print the response, but store the messaging server URL and subscribe to it.
-	contents, err := ioutil.ReadAll(resp.Body)
+	var t struct {
+		NatsUrl string `json:"nats_url"`
+	}
+	dec := json.NewDecoder(resp.Body)
+	if err := dec.Decode(&t); err != nil {
+		return err
+	}
+	nc, err := nats.Connect(t.NatsUrl)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s\n", string(contents))
+	// TODO: Should we return the conn instead of using a global?
+	natsEncConn, err = nats.NewEncodedConn(nc, "json")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
