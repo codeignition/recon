@@ -23,25 +23,25 @@ func CollectData() (Data, error) {
 	if err != nil {
 		log.Println("uptime: ", err)
 		return nil, err
-	} else {
-		s := strings.Split(strings.Trim(string(b), "\n"), " ")
-		if len(s) == 2 {
-			us, err := strconv.ParseFloat(s[0], 32)
-			if err != nil {
-				return nil, err
-			}
-			d["uptime_seconds"] = us
-			dur := time.Duration(us) * time.Second
-			d["uptime"] = dur.String()
-
-			is, err := strconv.ParseFloat(s[1], 32)
-			if err != nil {
-				return nil, err
-			}
-			d["idletime_seconds"] = is
-			dur = time.Duration(is) * time.Second
-			d["idletime"] = dur.String()
+	}
+	s := strings.Split(strings.Trim(string(b), "\n"), " ")
+	if len(s) == 2 {
+		us, err := strconv.ParseFloat(s[0], 32)
+		if err != nil {
+			return nil, err
 		}
+		d["uptime_seconds"] = us
+		dur := time.Duration(us) * time.Second
+		d["uptime"] = dur.String()
+
+		is, err := strconv.ParseFloat(s[1], 32)
+		if err != nil {
+			return nil, err
+		}
+		d["idletime_seconds"] = is
+		dur = time.Duration(is) * time.Second
+		d["idletime"] = dur.String()
+
 	}
 	return d, nil
 }
