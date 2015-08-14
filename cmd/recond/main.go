@@ -178,13 +178,13 @@ func (a *Agent) register(addr string) error {
 	defer resp.Body.Close()
 
 	var t struct {
-		NatsUrl string `json:"nats_url"`
+		NatsURL string `json:"nats_url"`
 	}
 	dec := json.NewDecoder(resp.Body)
 	if err := dec.Decode(&t); err != nil {
 		return err
 	}
-	nc, err := nats.Connect(t.NatsUrl)
+	nc, err := nats.Connect(t.NatsURL)
 	if err != nil {
 		return err
 	}
