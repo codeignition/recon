@@ -37,25 +37,84 @@ var natsEncConn *nats.EncodedConn
 // config file path in the local machine
 var configPath string
 
-func init() {
-	usr, err := user.Current()
-	if err != nil {
-		log.Fatal(err)
-	}
-	configPath = filepath.Join(usr.HomeDir, ".recon")
-	if fileutil.Exists(configPath) {
-		// TODO: Here we are deleting the file, while development.
-		// Change the logic to get the uid from this file later.
-		err := os.Remove(configPath)
-		if err != nil {
-			log.Fatalln(err)
-		}
-	}
-}
-
 // Agent is just recon.Agent. It has a separate type to
 // add methods to it.
 type Agent recon.Agent
+
+// Config represents the configuration for the recond
+// running on a particular machine.
+type Config struct {
+	UID string `json:"uid"` // Unique Identifier to register with marksman
+}
+
+func init() {
+	usr, err := user.Current()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	configPath = filepath.Join(usr.HomeDir, ".recond.json")
+}
+
+func (c *Config) Save() error {
+	if fileutil.Exists(configPath) {
+		if err := os.Remove(configPath); err != nil {
+			return err
+		}
+	}
+
+	f, err := os.Create(configPath)
+	if err != nil {
+		return err
+	}
+	// Brad Fitzpatrick:
+	// Never defer a file Close when the file was opened for writing.
+	// Many filesystems do their real work (and thus their real failures) on close.
+	// You can defer a file.Close for Read, but not for write.
+
+	enc := json.NewEncoder(f)
+	if err := enc.Encode(c); err != nil {
+		return err
+	}
+
+	if err := f.Close(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func parseConfigFile(file string) (*Config, error) {
+	f, err := os.Open(file)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	dec := json.NewDecoder(f)
+	var conf Config
+	if err := dec.Decode(&conf); err != nil {
+		return nil, err
+	}
+	return &conf, nil
+}
+
+// initConfig returns a Config. If the config file doesn't exist,
+// it creates it and returns the corresponding Config.
+func initConfig() (*Config, error) {
+	if fileutil.Exists(configPath) {
+		return parseConfigFile(configPath)
+	}
+
+	uid, err := generateUID()
+	if err != nil {
+		return nil, err
+	}
+	conf := &Config{
+		UID: uid,
+	}
+	err = conf.Save()
+	return conf, err
+}
 
 func main() {
 	log.SetPrefix("recond: ")
@@ -63,18 +122,7 @@ func main() {
 	var masterAddr = flag.String("masterAddr", "http://localhost:3000", "address of the recon-master server (along with protocol)")
 	flag.Parse()
 
-	uid, err := generateUID()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	f, err := os.Create(configPath)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer f.Close()
-
-	_, err = f.WriteString("uid: " + uid + "\n")
+	conf, err := initConfig()
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -82,13 +130,14 @@ func main() {
 	// agent represents a single agent on which the recond
 	// is running.
 	var agent = &Agent{
-		UID: uid,
+		UID: conf.UID,
 	}
 
 	err = agent.register(*masterAddr)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	conf.Save()
 
 	defer natsEncConn.Close()
 
