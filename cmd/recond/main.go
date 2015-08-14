@@ -55,7 +55,9 @@ func init() {
 	configPath = filepath.Join(usr.HomeDir, ".recond.json")
 }
 
-func (c *Config) Save() error {
+// save saves the config in the configPath
+// If it already exists, it removes it and writes it freshly.
+func (c *Config) save() error {
 	if fileutil.Exists(configPath) {
 		if err := os.Remove(configPath); err != nil {
 			return err
@@ -112,7 +114,7 @@ func initConfig() (*Config, error) {
 	conf := &Config{
 		UID: uid,
 	}
-	err = conf.Save()
+	err = conf.save()
 	return conf, err
 }
 
