@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	metricsAPIPath = "/api/metrics" // metrics path in the master server
-	agentsAPIPath  = "/api/agents"  // agents path in the master server
+	metricsAPIPath = "/api/metrics" // metrics path in the marksman server
+	agentsAPIPath  = "/api/agents"  // agents path in the marksman server
 )
 
 // natsEncConn is the opened with the URL obtained from marksman.
