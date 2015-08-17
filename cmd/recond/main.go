@@ -11,6 +11,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -85,37 +86,39 @@ func (c *Config) save() error {
 	return nil
 }
 
-func parseConfigFile(file string) (*Config, error) {
-	f, err := os.Open(file)
-	if err != nil {
+// parseConfig reads from a io.Reader and
+// creates a Config struct accordingly.
+// It takes an io.Reader so that it is easier
+// to test it.
+func parseConfig(r io.Reader) (*Config, error) {
+	dec := json.NewDecoder(r)
+	var c Config
+	if err := dec.Decode(&c); err != nil {
 		return nil, err
 	}
-	defer f.Close()
-
-	dec := json.NewDecoder(f)
-	var conf Config
-	if err := dec.Decode(&conf); err != nil {
-		return nil, err
-	}
-	return &conf, nil
+	return &c, nil
 }
 
 // initConfig returns a Config. If the config file doesn't exist,
 // it creates it and returns the corresponding Config.
 func initConfig() (*Config, error) {
 	if fileutil.Exists(configPath) {
-		return parseConfigFile(configPath)
+		f, err := os.Open(configPath)
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close()
+		return parseConfig(f)
 	}
-
 	uid, err := generateUID()
 	if err != nil {
 		return nil, err
 	}
-	conf := &Config{
+	c := &Config{
 		UID: uid,
 	}
-	err = conf.save()
-	return conf, err
+	err = c.save()
+	return c, err
 }
 
 func main() {
