@@ -23,6 +23,10 @@ const (
 // It is populated if the agent registers successfully.
 var natsEncConn *nats.EncodedConn
 
+// updateInterval is time.Duration that specifies the interval
+// between two consecutive updates.
+const updateInterval = 5 * time.Second
+
 func main() {
 	log.SetPrefix("recond: ")
 
@@ -51,7 +55,7 @@ func main() {
 		fmt.Printf("Received a message: %s\n", s)
 	})
 
-	c := time.Tick(5 * time.Second)
+	c := time.Tick(updateInterval)
 	for now := range c {
 		log.Println("Update sent at", now)
 		if err := agent.update(*masterAddr); err != nil {
