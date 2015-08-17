@@ -30,7 +30,7 @@ const updateInterval = 5 * time.Second
 func main() {
 	log.SetPrefix("recond: ")
 
-	var masterAddr = flag.String("masterAddr", "http://localhost:3000", "address of the recon-master server (along with protocol)")
+	var marksmanAddr = flag.String("marksman", "http://localhost:3000", "address of the marksman server")
 	flag.Parse()
 
 	conf, err := config.Init()
@@ -44,7 +44,7 @@ func main() {
 		UID: conf.UID,
 	}
 
-	err = agent.register(*masterAddr)
+	err = agent.register(*marksmanAddr)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -58,7 +58,7 @@ func main() {
 	c := time.Tick(updateInterval)
 	for now := range c {
 		log.Println("Update sent at", now)
-		if err := agent.update(*masterAddr); err != nil {
+		if err := agent.update(*marksmanAddr); err != nil {
 			log.Println(err)
 		}
 	}
