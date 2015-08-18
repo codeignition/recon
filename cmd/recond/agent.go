@@ -8,8 +8,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 
@@ -62,33 +60,10 @@ func (a *Agent) register(addr string) error {
 	return nil
 }
 
-func (a *Agent) update(addr string) error {
-	var buf bytes.Buffer
-
-	m := recon.Metric{
+func (a *Agent) update() {
+	m := &recon.Metric{
 		AgentUID: a.UID,
 		Data:     accumulateData(),
 	}
-
-	if err := json.NewEncoder(&buf).Encode(&m); err != nil {
-		return err
-	}
-
-	l, err := url.Parse(addr + metricsAPIPath)
-	if err != nil {
-		return err
-	}
-	resp, err := http.Post(l.String(), "application/json", &buf)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != http.StatusCreated {
-		defer resp.Body.Close()
-		b, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-		return fmt.Errorf("response status code not %d; response body: %s\n", http.StatusCreated, b)
-	}
-	return nil
+	natsEncConn.Publish("marksman_metrics", &m)
 }

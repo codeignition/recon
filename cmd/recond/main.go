@@ -14,10 +14,7 @@ import (
 	"github.com/nats-io/nats"
 )
 
-const (
-	metricsAPIPath = "/api/metrics" // metrics path in the marksman server
-	agentsAPIPath  = "/api/agents"  // agents path in the marksman server
-)
+const agentsAPIPath = "/api/agents" // agents path in the marksman server
 
 // natsEncConn is the opened with the URL obtained from marksman.
 // It is populated if the agent registers successfully.
@@ -58,8 +55,6 @@ func main() {
 	c := time.Tick(updateInterval)
 	for now := range c {
 		log.Println("Update sent at", now)
-		if err := agent.update(*marksmanAddr); err != nil {
-			log.Println(err)
-		}
+		agent.update()
 	}
 }
