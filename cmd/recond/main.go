@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/codeignition/recon/cmd/recond/config"
+	"github.com/codeignition/recon/policy"
 	"github.com/nats-io/nats"
 )
 
@@ -50,6 +51,12 @@ func main() {
 
 	natsEncConn.Subscribe(agent.UID, func(s string) {
 		fmt.Printf("Received a message: %s\n", s)
+	})
+
+	natsEncConn.Subscribe(agent.UID+"_policy", func(subj, reply string, p *policy.Policy) {
+		fmt.Printf("Received a Policy: %v\n", p)
+		err := p.Execute()
+		natsEncConn.Publish(reply, err)
 	})
 
 	c := time.Tick(updateInterval)
