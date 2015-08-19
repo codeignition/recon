@@ -24,6 +24,7 @@ func tcpPolicyHandler(p Policy) error {
 	// A duration string is a possibly signed sequence of
 	// decimal numbers, each with optional fraction and a unit suffix,
 	// such as "300ms", "-1.5h" or "2h45m".
+	// Valid time units are "ns", "us", "ms", "s", "m", "h".
 	d, err := time.ParseDuration(freq)
 	if err != nil {
 		return err
