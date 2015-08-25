@@ -36,7 +36,7 @@ func init() {
 // Config represents the configuration for the recond
 // running on a particular machine.
 type Config struct {
-	UID          string `json:"uid"` // Unique Identifier to register with marksman
+	UID          string // Unique Identifier to register with marksman
 	PolicyConfig policy.Config
 }
 

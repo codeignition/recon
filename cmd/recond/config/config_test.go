@@ -31,7 +31,7 @@ func TestGenerateUID(t *testing.T) {
 
 func TestParseConfig(t *testing.T) {
 	fakeUID := "23fcdd694986"
-	fakeContent := fmt.Sprintf(`{"uid":"%s"}
+	fakeContent := fmt.Sprintf(`{"UID":"%s"}
 `, fakeUID)
 	r := strings.NewReader(fakeContent)
 	c, err := parseConfig(r)
@@ -49,7 +49,7 @@ func TestInitExisting(t *testing.T) {
 		t.Error(err)
 	}
 	fakeUID := "13fcdf794886"
-	fakeContent := fmt.Sprintf(`{"uid":"%s"}
+	fakeContent := fmt.Sprintf(`{"UID":"%s"}
 `, fakeUID)
 	_, err = f.WriteString(fakeContent)
 	if err != nil {
@@ -94,7 +94,7 @@ func TestSave(t *testing.T) {
 		t.Error(err)
 	}
 	fakeUID := "13fcdf794886"
-	fakeContent := fmt.Sprintf(`{"uid":"%s"}
+	fakeContent := fmt.Sprintf(`{"UID":"%s"}
 `, fakeUID)
 	_, err = f.WriteString(fakeContent)
 	if err != nil {
