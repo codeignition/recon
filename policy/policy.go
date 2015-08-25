@@ -4,6 +4,8 @@
 
 package policy
 
+import "errors"
+
 // Type denotes the monitoring policy type.
 //
 // e.g. "tcp"
@@ -29,5 +31,21 @@ var PolicyFuncMap = map[Type]func(Policy) error{
 }
 
 func (p Policy) Execute() error {
+	if err := p.Valid(); err != nil {
+		return err
+	}
 	return PolicyFuncMap[p.Type](p)
+}
+
+// Valid checks whether the policy is valid.
+func (p Policy) Valid() error {
+	if p.Name == "" {
+		return errors.New("policy name can't be empty")
+	}
+	// TODO: also check if the name conflicts with already
+	// existing ones
+	if _, ok := PolicyFuncMap[p.Type]; !ok {
+		return errors.New("policy type unknown")
+	}
+	return nil
 }
