@@ -35,4 +35,4 @@ So far the project is tested only on Linux, specifically Ubuntu 14.04.
 
 #### Contributing
 
-Check out the code and jump to Issues section to join a conversation or to start one for feedback or questions on the code, features and anything else.
+Check out the code and jump to the Issues section to join a conversation or to start one. Also, please read the  [CONTRIBUTING](https://github.com/codeignition/recon/blob/master/CONTRIBUTING.md) document.
