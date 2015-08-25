@@ -15,10 +15,10 @@ type Type string
 //
 // e.g. "tcp" PolicyType requires 2 policy keys "port" and "frequency"
 type Policy struct {
-	Name     string            `json:"name"`
-	AgentUID string            `json:"agent_uid"`
-	Type     Type              `json:"policy_type"`
-	M        map[string]string `json:"m"`
+	Name     string
+	AgentUID string
+	Type     Type
+	M        map[string]string
 }
 
 // Config is the format used to encode/decode the monitoring policy
