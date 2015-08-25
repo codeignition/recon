@@ -17,10 +17,6 @@ Please file bugs in the issues section detailing the problem completely.
 5. Ensure you have followed the [`Code Review Comments`](https://github.com/golang/go/wiki/CodeReviewComments)
 5. Run your code through [`goimports`](https://godoc.org/golang.org/x/tools/cmd/goimports), [`golint`](https://github.com/golang/lint) and [`vet`](https://tip.golang.org/cmd/vet/)
 
-### Documentation
-
-Do not wrap lines at 80 characters.
-
 ### License
 
 By contributing to Recon, you agree that your contributions will be licensed under its BSD license.
