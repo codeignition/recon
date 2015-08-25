@@ -25,10 +25,6 @@ go get github.com/codeignition/recon/...
 
 [`marksman`](https://github.com/codeignition/marksman) is the master server that aggregates the metrics from agents and exposes a public HTTP API.
 
-#### License
-
-BSD 3-clause "New" or "Revised" license
-
 #### Disclaimer
 
 So far the project is tested only on Linux, specifically Ubuntu 14.04.
@@ -36,3 +32,7 @@ So far the project is tested only on Linux, specifically Ubuntu 14.04.
 #### Contributing
 
 Check out the code and jump to the Issues section to join a conversation or to start one. Also, please read the  [CONTRIBUTING](https://github.com/codeignition/recon/blob/master/CONTRIBUTING.md) document.
+
+#### License
+
+BSD 3-clause "New" or "Revised" license
