@@ -7,6 +7,7 @@
 package config
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
@@ -80,10 +81,13 @@ func (c *Config) Save() error {
 	// Many filesystems do their real work (and thus their real failures) on close.
 	// You can defer a file.Close for Read, but not for write.
 
-	enc := json.NewEncoder(f)
-	if err := enc.Encode(c); err != nil {
+	var out bytes.Buffer
+	b, err := json.MarshalIndent(c, "", "  ")
+	if err != nil {
 		return err
 	}
+	out.Write(b)
+	out.WriteTo(f)
 
 	if err := f.Close(); err != nil {
 		return err
