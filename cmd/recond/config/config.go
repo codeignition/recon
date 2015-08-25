@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 
 	"github.com/codeignition/recon/internal/fileutil"
+	"github.com/codeignition/recon/policy"
 )
 
 const configFileName = ".recond.json"
@@ -35,7 +36,8 @@ func init() {
 // Config represents the configuration for the recond
 // running on a particular machine.
 type Config struct {
-	UID string `json:"uid"` // Unique Identifier to register with marksman
+	UID          string `json:"uid"` // Unique Identifier to register with marksman
+	PolicyConfig policy.Config
 }
 
 // Init initializes and returns a Config. i.e. if the config file doesn't exist,
@@ -88,6 +90,12 @@ func (c *Config) Save() error {
 	}
 
 	return nil
+}
+
+func (c *Config) AddPolicy(p policy.Policy) {
+	c.PolicyConfig = append(c.PolicyConfig, p)
+	// TODO: possible race condition. Use a mutex lock while
+	// writing to the slice PolicyConfig.
 }
 
 // parseConfig reads from a io.Reader and
