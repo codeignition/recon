@@ -55,12 +55,15 @@ func main() {
 
 	natsEncConn.Subscribe(agent.UID+"_policy", func(subj, reply string, p *policy.Policy) {
 		fmt.Printf("Received a Policy: %v\n", p)
-		if err := p.Execute(); err != nil {
+		if err := conf.AddPolicy(*p); err != nil {
 			natsEncConn.Publish(reply, err.Error())
 			return
 		}
-		conf.AddPolicy(*p)
 		if err := conf.Save(); err != nil {
+			natsEncConn.Publish(reply, err.Error())
+			return
+		}
+		if err := p.Execute(); err != nil {
 			natsEncConn.Publish(reply, err.Error())
 			return
 		}

@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -96,10 +97,16 @@ func (c *Config) Save() error {
 	return nil
 }
 
-func (c *Config) AddPolicy(p policy.Policy) {
+func (c *Config) AddPolicy(p policy.Policy) error {
+	for _, k := range c.PolicyConfig {
+		if k.Name == p.Name {
+			return errors.New("policy with the given name already exists")
+		}
+	}
 	c.PolicyConfig = append(c.PolicyConfig, p)
 	// TODO: possible race condition. Use a mutex lock while
 	// writing to the slice PolicyConfig.
+	return nil
 }
 
 // parseConfig reads from a io.Reader and

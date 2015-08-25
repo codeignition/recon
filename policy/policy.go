@@ -42,8 +42,6 @@ func (p Policy) Valid() error {
 	if p.Name == "" {
 		return errors.New("policy name can't be empty")
 	}
-	// TODO: also check if the name conflicts with already
-	// existing ones
 	if _, ok := PolicyFuncMap[p.Type]; !ok {
 		return errors.New("policy type unknown")
 	}
