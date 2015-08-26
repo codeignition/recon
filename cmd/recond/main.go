@@ -49,6 +49,8 @@ func main() {
 
 	defer natsEncConn.Close()
 
+	go runStoredPolicies(conf)
+
 	natsEncConn.Subscribe(agent.UID, func(s string) {
 		fmt.Printf("Received a message: %s\n", s)
 	})
@@ -74,5 +76,15 @@ func main() {
 	for now := range c {
 		log.Println("Update sent at", now)
 		agent.update()
+	}
+}
+
+func runStoredPolicies(c *config.Config) {
+	for _, p := range c.PolicyConfig {
+		go func() {
+			if err := p.Execute(); err != nil {
+				log.Fatal(err)
+			}
+		}()
 	}
 }
