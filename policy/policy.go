@@ -25,8 +25,8 @@ type Policy struct {
 // received from the message queue or to store in the config file
 type Config []Policy
 
-// PolicyFuncMap maps a PolicyType to a handler function
-var PolicyFuncMap = map[Type]func(Policy) (<-chan Event, error){
+// policyFuncMap maps a PolicyType to a handler function
+var policyFuncMap = map[Type]func(Policy) (<-chan Event, error){
 	"tcp": tcpPolicyHandler,
 }
 
@@ -34,7 +34,7 @@ func (p Policy) Execute() (<-chan Event, error) {
 	if err := p.Valid(); err != nil {
 		return nil, err
 	}
-	return PolicyFuncMap[p.Type](p)
+	return policyFuncMap[p.Type](p)
 }
 
 // Valid checks whether the policy is valid.
@@ -42,7 +42,7 @@ func (p Policy) Valid() error {
 	if p.Name == "" {
 		return errors.New("policy name can't be empty")
 	}
-	if _, ok := PolicyFuncMap[p.Type]; !ok {
+	if _, ok := policyFuncMap[p.Type]; !ok {
 		return errors.New("policy type unknown")
 	}
 	return nil
