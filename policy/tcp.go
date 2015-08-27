@@ -4,9 +4,11 @@ import (
 	"errors"
 	"net"
 	"time"
+
+	"golang.org/x/net/context"
 )
 
-func tcpPolicyHandler(p Policy) (<-chan Event, error) {
+func tcpPolicyHandler(ctx context.Context, p Policy) (<-chan Event, error) {
 	// Always use v, ok := p[key] form to avoid panic
 	port, ok := p.M["port"]
 	if !ok {

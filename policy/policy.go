@@ -4,7 +4,11 @@
 
 package policy
 
-import "errors"
+import (
+	"errors"
+
+	"golang.org/x/net/context"
+)
 
 // Type denotes the monitoring policy type.
 //
@@ -26,7 +30,7 @@ type Policy struct {
 type Config []Policy
 
 // policyFuncMap maps a PolicyType to a handler function
-var policyFuncMap = map[Type]func(Policy) (<-chan Event, error){
+var policyFuncMap = map[Type]func(context.Context, Policy) (<-chan Event, error){
 	"tcp": tcpPolicyHandler,
 }
 
@@ -34,7 +38,7 @@ func (p Policy) Execute() (<-chan Event, error) {
 	if err := p.Valid(); err != nil {
 		return nil, err
 	}
-	return policyFuncMap[p.Type](p)
+	return policyFuncMap[p.Type](context.TODO(), p)
 }
 
 // Valid checks whether the policy is valid.
