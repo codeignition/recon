@@ -2,20 +2,19 @@ package policy
 
 import (
 	"errors"
-	"fmt"
 	"net"
 	"time"
 )
 
-func tcpPolicyHandler(p Policy) error {
+func tcpPolicyHandler(p Policy) (<-chan Event, error) {
 	// Always use v, ok := p[key] form to avoid panic
 	port, ok := p.M["port"]
 	if !ok {
-		return errors.New(`"port" key missing in tcp policy`)
+		return nil, errors.New(`"port" key missing in tcp policy`)
 	}
 	freq, ok := p.M["frequency"]
 	if !ok {
-		return errors.New(`"frequency" key missing in tcp policy`)
+		return nil, errors.New(`"frequency" key missing in tcp policy`)
 	}
 
 	// From the time package docs:
@@ -27,25 +26,38 @@ func tcpPolicyHandler(p Policy) error {
 	// Valid time units are "ns", "us", "ms", "s", "m", "h".
 	d, err := time.ParseDuration(freq)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// This check is here to ensure time.Ticker(d) doesn't panic
 	if d <= 0 {
-		return errors.New("frequency must be a positive quantity")
+		return nil, errors.New("frequency must be a positive quantity")
 	}
+
+	out := make(chan Event)
 	go func() {
 		for now := range time.Tick(d) {
 			_, err := net.DialTimeout("tcp", port, d)
 			if err != nil {
-				fmt.Println(now, p.Name, "failure")
-				// TODO: sendErrorToMarksman(Agent, Policy, err)
+				out <- Event{
+					Time:   now,
+					Policy: p,
+					Data: map[string]interface{}{
+						"status": "failure",
+						"error":  err,
+					},
+				}
 			} else {
-				fmt.Println(now, p.Name, "success")
-				// TODO: sendSuccessToMarksman(Agent, Policy, err)
+				out <- Event{
+					Time:   now,
+					Policy: p,
+					Data: map[string]interface{}{
+						"status": "success",
+					},
+				}
 			}
-
+			// TODO: think about when to close the out channel .
 		}
 	}()
-	return nil
+	return out, nil
 }

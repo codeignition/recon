@@ -65,11 +65,15 @@ func main() {
 			natsEncConn.Publish(reply, err.Error())
 			return
 		}
-		if err := p.Execute(); err != nil {
+		events, err := p.Execute()
+		if err != nil {
 			natsEncConn.Publish(reply, err.Error())
 			return
 		}
 		natsEncConn.Publish(reply, "policy ack") // acknowledge
+		for e := range events {
+			fmt.Printf("%+v\n", e)
+		}
 	})
 
 	c := time.Tick(updateInterval)
@@ -82,8 +86,12 @@ func main() {
 func runStoredPolicies(c *config.Config) {
 	for _, p := range c.PolicyConfig {
 		go func() {
-			if err := p.Execute(); err != nil {
-				log.Fatal(err)
+			events, err := p.Execute()
+			if err != nil {
+				log.Fatal(err) // TODO: send to a nats errors channel
+			}
+			for e := range events {
+				fmt.Printf("%+v\n", e)
 			}
 		}()
 	}

@@ -26,13 +26,13 @@ type Policy struct {
 type Config []Policy
 
 // PolicyFuncMap maps a PolicyType to a handler function
-var PolicyFuncMap = map[Type]func(Policy) error{
+var PolicyFuncMap = map[Type]func(Policy) (<-chan Event, error){
 	"tcp": tcpPolicyHandler,
 }
 
-func (p Policy) Execute() error {
+func (p Policy) Execute() (<-chan Event, error) {
 	if err := p.Valid(); err != nil {
-		return err
+		return nil, err
 	}
 	return PolicyFuncMap[p.Type](p)
 }
