@@ -57,7 +57,7 @@ func fakePolicyHandler(ctx context.Context, p Policy) (<-chan Event, error) {
 func TestRegisterHandler(t *testing.T) {
 	err := RegisterHandler("", fakePolicyHandler)
 	if err == nil {
-		t.Fatal(errors.New("NewHandler should return an error when the type is empty"))
+		t.Fatal(`NewHandler should return an error when the type is empty`)
 	}
 	err = RegisterHandler("fake", fakePolicyHandler)
 	if err != nil {
