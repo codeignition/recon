@@ -28,7 +28,7 @@ func fakePolicyHandler(ctx context.Context, p Policy) (<-chan Event, error) {
 
 	// This check is here to ensure time.Ticker(d) doesn't panic
 	if d <= 0 {
-		return nil, errors.New("frequency must be a positive quantity")
+		return nil, errors.New("interval must be a positive quantity")
 	}
 
 	out := make(chan Event)
