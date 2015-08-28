@@ -10,6 +10,8 @@ import (
 	"log"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"github.com/codeignition/recon/cmd/recond/config"
 	"github.com/codeignition/recon/policy"
 	"github.com/nats-io/nats"
@@ -65,7 +67,7 @@ func main() {
 			natsEncConn.Publish(reply, err.Error())
 			return
 		}
-		events, err := p.Execute()
+		events, err := p.Execute(context.TODO())
 		if err != nil {
 			natsEncConn.Publish(reply, err.Error())
 			return
@@ -86,7 +88,7 @@ func main() {
 func runStoredPolicies(c *config.Config) {
 	for _, p := range c.PolicyConfig {
 		go func() {
-			events, err := p.Execute()
+			events, err := p.Execute(context.TODO())
 			if err != nil {
 				log.Fatal(err) // TODO: send to a nats errors channel
 			}

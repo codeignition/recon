@@ -80,7 +80,7 @@ func TestExecute(t *testing.T) {
 			"bar": "bar_value",
 		},
 	}
-	out, err := p.Execute()
+	out, err := p.Execute(context.TODO())
 	if err != nil {
 		t.Error(err)
 	}

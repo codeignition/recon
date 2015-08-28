@@ -36,11 +36,11 @@ var policyFuncMap = map[Type]HandlerFunc{
 	"tcp": tcpPolicyHandler,
 }
 
-func (p Policy) Execute() (<-chan Event, error) {
+func (p Policy) Execute(ctx context.Context) (<-chan Event, error) {
 	if err := p.Valid(); err != nil {
 		return nil, err
 	}
-	return policyFuncMap[p.Type](context.TODO(), p)
+	return policyFuncMap[p.Type](ctx, p)
 }
 
 // Valid checks whether the policy is valid.
