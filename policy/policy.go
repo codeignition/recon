@@ -10,18 +10,13 @@ import (
 	"golang.org/x/net/context"
 )
 
-// Type denotes the monitoring policy type.
-//
-// e.g. "tcp"
-type Type string
-
 // Policy is the map containing the rules of a particular monitoring policy.
 //
 // e.g. "tcp" PolicyType requires 2 policy keys "port" and "frequency"
 type Policy struct {
 	Name     string
 	AgentUID string
-	Type     Type
+	Type     string // Type denotes the monitoring policy type. e.g. "tcp"
 	M        map[string]string
 }
 
@@ -31,8 +26,8 @@ type Config []Policy
 
 type HandlerFunc func(context.Context, Policy) (<-chan Event, error)
 
-// policyFuncMap maps a PolicyType to a handler function
-var policyFuncMap = make(map[Type]HandlerFunc)
+// policyFuncMap maps a policy type to a handler function
+var policyFuncMap = make(map[string]HandlerFunc)
 
 func (p Policy) Execute(ctx context.Context) (<-chan Event, error) {
 	if err := p.Valid(); err != nil {
@@ -52,7 +47,7 @@ func (p Policy) Valid() error {
 	return nil
 }
 
-func RegisterHandler(policyType Type, handlerFunc HandlerFunc) error {
+func RegisterHandler(policyType string, handlerFunc HandlerFunc) error {
 	if policyType == "" {
 		return errors.New("policy type can't be empty")
 	}
