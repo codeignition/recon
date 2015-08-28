@@ -17,29 +17,39 @@ func fakePolicyHandler(ctx context.Context, p Policy) (<-chan Event, error) {
 	if !ok {
 		return nil, errors.New(`"foo" key missing in fake policy`)
 	}
-	bar, ok := p.M["bar"]
+	interval, ok := p.M["interval"]
 	if !ok {
-		return nil, errors.New(`"bar" key missing in fake policy`)
+		return nil, errors.New(`"interval" key missing in fake policy`)
 	}
+	d, err := time.ParseDuration(interval)
+	if err != nil {
+		return nil, err
+	}
+
+	// This check is here to ensure time.Ticker(d) doesn't panic
+	if d <= 0 {
+		return nil, errors.New("frequency must be a positive quantity")
+	}
+
 	out := make(chan Event)
 	go func() {
-		out <- Event{
-			Time:   time.Now(),
-			Policy: p,
-			Data: map[string]interface{}{
-				"foo": foo,
-				"bar": bar,
-			},
+		t := time.NewTicker(d)
+		for {
+			select {
+			case <-ctx.Done():
+				t.Stop()
+				close(out)
+				return
+			case <-t.C:
+				out <- Event{
+					Time:   time.Now(),
+					Policy: p,
+					Data: map[string]interface{}{
+						"foo": foo,
+					},
+				}
+			}
 		}
-		out <- Event{
-			Time:   time.Now(),
-			Policy: p,
-			Data: map[string]interface{}{
-				"foo": foo,
-				"bar": bar,
-			},
-		}
-		close(out)
 	}()
 	return out, nil
 }
@@ -76,25 +86,35 @@ func TestExecute(t *testing.T) {
 		Name: "dummy",
 		Type: "fake",
 		M: map[string]string{
-			"foo": "foo_value",
-			"bar": "bar_value",
+			"foo":      "foo_value",
+			"interval": "200ms",
 		},
 	}
-	out, err := p.Execute(context.TODO())
+	ctx, cancel := context.WithCancel(context.Background())
+	out, err := p.Execute(ctx)
 	if err != nil {
 		t.Error(err)
 	}
+	go func() {
+		time.Sleep(1 * time.Second)
+		cancel()
+	}()
+
 	var count int
+	// Here, we are also able to test whether out is being
+	// closed when cancel() is called. If out is not closed,
+	// this test should have been running forever.
 	for evt := range out {
 		count++
 		if evt.Data["foo"] != "foo_value" {
 			t.Errorf(`want evt.Data["foo"] = %s; got %s`, "foo", evt.Data["foo"])
 		}
-		if evt.Data["bar"] != "bar_value" {
-			t.Errorf(`want evt.Data["bar"] = %s; got %s`, "bar", evt.Data["bar"])
-		}
 	}
-	if count != 2 {
-		t.Errorf(`expected %d events; got %d events`, 2, count)
+
+	// The interval for the dummy policy is 200ms.
+	// We are calling cancel after 1 sec. Typically, we receive
+	// 4 or 5 events in that duration.
+	if count != 4 && count != 5 {
+		t.Errorf(`want count to be either 4 or 5; got %d`, count)
 	}
 }
