@@ -14,6 +14,7 @@ import (
 
 	"github.com/codeignition/recon/cmd/recond/config"
 	"github.com/codeignition/recon/policy"
+	_ "github.com/codeignition/recon/policy/handlers"
 	"github.com/nats-io/nats"
 )
 
