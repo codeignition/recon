@@ -54,12 +54,12 @@ func fakePolicyHandler(ctx context.Context, p Policy) (<-chan Event, error) {
 	return out, nil
 }
 
-func TestNewHandler(t *testing.T) {
-	err := NewHandler("", fakePolicyHandler)
+func TestRegisterHandler(t *testing.T) {
+	err := RegisterHandler("", fakePolicyHandler)
 	if err == nil {
 		t.Fatal(errors.New("NewHandler should return an error when the type is empty"))
 	}
-	err = NewHandler("fake", fakePolicyHandler)
+	err = RegisterHandler("fake", fakePolicyHandler)
 	if err != nil {
 		t.Fatal(err)
 	}

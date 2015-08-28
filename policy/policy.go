@@ -32,7 +32,7 @@ type Config []Policy
 type HandlerFunc func(context.Context, Policy) (<-chan Event, error)
 
 // policyFuncMap maps a PolicyType to a handler function
-var policyFuncMap = map[Type]HandlerFunc{}
+var policyFuncMap = make(map[Type]HandlerFunc)
 
 func (p Policy) Execute(ctx context.Context) (<-chan Event, error) {
 	if err := p.Valid(); err != nil {
@@ -52,7 +52,7 @@ func (p Policy) Valid() error {
 	return nil
 }
 
-func NewHandler(policyType Type, handlerFunc HandlerFunc) error {
+func RegisterHandler(policyType Type, handlerFunc HandlerFunc) error {
 	if policyType == "" {
 		return errors.New("policy type can't be empty")
 	}

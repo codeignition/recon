@@ -7,5 +7,5 @@ package handlers
 import "github.com/codeignition/recon/policy"
 
 func init() {
-	policy.NewHandler("tcp", TCP)
+	policy.RegisterHandler("tcp", TCP)
 }
