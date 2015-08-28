@@ -29,8 +29,10 @@ type Policy struct {
 // received from the message queue or to store in the config file
 type Config []Policy
 
+type HandlerFunc func(context.Context, Policy) (<-chan Event, error)
+
 // policyFuncMap maps a PolicyType to a handler function
-var policyFuncMap = map[Type]func(context.Context, Policy) (<-chan Event, error){
+var policyFuncMap = map[Type]HandlerFunc{
 	"tcp": tcpPolicyHandler,
 }
 
@@ -49,5 +51,17 @@ func (p Policy) Valid() error {
 	if _, ok := policyFuncMap[p.Type]; !ok {
 		return errors.New("policy type unknown")
 	}
+	return nil
+}
+
+func NewHandler(policyType Type, handlerFunc HandlerFunc) error {
+	if policyType == "" {
+		return errors.New("policy type can't be empty")
+	}
+
+	if _, ok := policyFuncMap[policyType]; ok {
+		return errors.New("handler for the policy type already exists")
+	}
+	policyFuncMap[policyType] = handlerFunc
 	return nil
 }
