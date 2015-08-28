@@ -63,6 +63,12 @@ func TestRegisterHandler(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	// test registering twice
+	err = RegisterHandler("fake", fakePolicyHandler)
+	if err == nil {
+		t.Fatal(`want error "handler for the policy type already exists"; got nil`)
+	}
 }
 
 func TestValid(t *testing.T) {
@@ -70,14 +76,24 @@ func TestValid(t *testing.T) {
 		Name: "",
 	}
 	if err := p.Valid(); err == nil {
-		t.Error(`want error "policy name can't be empty" got nil`)
+		t.Error(`want error "policy name can't be empty"; got nil`)
 	}
 	p = Policy{
 		Name: "dummy",
 		Type: "unknownDummyType",
 	}
 	if err := p.Valid(); err == nil {
-		t.Error(`want error "policy type unknown" got nil`)
+		t.Error(`want error "policy type unknown"; got nil`)
+	}
+}
+
+func TestExecuteInvalidPolicy(t *testing.T) {
+	p := Policy{
+		Name: "dummy",
+		Type: "unknownDummyType",
+	}
+	if _, err := p.Execute(context.TODO()); err == nil {
+		t.Error(`want error "policy type unknown"; got nil`)
 	}
 }
 
