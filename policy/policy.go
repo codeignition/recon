@@ -32,9 +32,7 @@ type Config []Policy
 type HandlerFunc func(context.Context, Policy) (<-chan Event, error)
 
 // policyFuncMap maps a PolicyType to a handler function
-var policyFuncMap = map[Type]HandlerFunc{
-	"tcp": tcpPolicyHandler,
-}
+var policyFuncMap = map[Type]HandlerFunc{}
 
 func (p Policy) Execute(ctx context.Context) (<-chan Event, error) {
 	if err := p.Valid(); err != nil {

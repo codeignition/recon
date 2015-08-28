@@ -1,14 +1,20 @@
-package policy
+// Copyright 2015 CodeIgnition. All rights reserved.
+// Use of this source code is governed by a BSD
+// license that can be found in the LICENSE file.
+
+package handlers
 
 import (
 	"errors"
 	"net"
 	"time"
 
+	"github.com/codeignition/recon/policy"
+
 	"golang.org/x/net/context"
 )
 
-func tcpPolicyHandler(ctx context.Context, p Policy) (<-chan Event, error) {
+func TCP(ctx context.Context, p policy.Policy) (<-chan policy.Event, error) {
 	// Always use v, ok := p[key] form to avoid panic
 	port, ok := p.M["port"]
 	if !ok {
@@ -36,12 +42,12 @@ func tcpPolicyHandler(ctx context.Context, p Policy) (<-chan Event, error) {
 		return nil, errors.New("frequency must be a positive quantity")
 	}
 
-	out := make(chan Event)
+	out := make(chan policy.Event)
 	go func() {
 		for now := range time.Tick(d) {
 			_, err := net.DialTimeout("tcp", port, d)
 			if err != nil {
-				out <- Event{
+				out <- policy.Event{
 					Time:   now,
 					Policy: p,
 					Data: map[string]interface{}{
@@ -50,7 +56,7 @@ func tcpPolicyHandler(ctx context.Context, p Policy) (<-chan Event, error) {
 					},
 				}
 			} else {
-				out <- Event{
+				out <- policy.Event{
 					Time:   now,
 					Policy: p,
 					Data: map[string]interface{}{
