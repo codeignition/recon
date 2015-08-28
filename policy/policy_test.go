@@ -27,18 +27,16 @@ func fakePolicyHandler(ctx context.Context, p Policy) (<-chan Event, error) {
 			Time:   time.Now(),
 			Policy: p,
 			Data: map[string]interface{}{
-				"count": 1,
-				"foo":   foo,
-				"bar":   bar,
+				"foo": foo,
+				"bar": bar,
 			},
 		}
 		out <- Event{
 			Time:   time.Now(),
 			Policy: p,
 			Data: map[string]interface{}{
-				"count": 2,
-				"foo":   foo,
-				"bar":   bar,
+				"foo": foo,
+				"bar": bar,
 			},
 		}
 		close(out)
@@ -70,5 +68,33 @@ func TestValid(t *testing.T) {
 	}
 	if err := p.Valid(); err == nil {
 		t.Error(`want error "policy type unknown" got nil`)
+	}
+}
+
+func TestExecute(t *testing.T) {
+	p := Policy{
+		Name: "dummy",
+		Type: "fake",
+		M: map[string]string{
+			"foo": "foo_value",
+			"bar": "bar_value",
+		},
+	}
+	out, err := p.Execute()
+	if err != nil {
+		t.Error(err)
+	}
+	var count int
+	for evt := range out {
+		count++
+		if evt.Data["foo"] != "foo_value" {
+			t.Errorf(`want evt.Data["foo"] = %s; got %s`, "foo", evt.Data["foo"])
+		}
+		if evt.Data["bar"] != "bar_value" {
+			t.Errorf(`want evt.Data["bar"] = %s; got %s`, "bar", evt.Data["bar"])
+		}
+	}
+	if count != 2 {
+		t.Errorf(`expected %d events; got %d events`, 2, count)
 	}
 }
