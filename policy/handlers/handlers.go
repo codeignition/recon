@@ -8,4 +8,5 @@ import "github.com/codeignition/recon/policy"
 
 func init() {
 	policy.RegisterHandler("tcp", TCP)
+	policy.RegisterHandler("system_data", SystemData)
 }
