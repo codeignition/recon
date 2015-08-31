@@ -84,16 +84,18 @@ func main() {
 }
 
 func runStoredPolicies(c *config.Config) {
+	log.Print("adding stored policies...")
 	for _, p := range c.PolicyConfig {
-		go func() {
+		log.Print(p.Name)
+		go func(p policy.Policy) {
 			events, err := p.Execute(context.TODO())
 			if err != nil {
-				log.Fatal(err) // TODO: send to a nats errors channel
+				log.Print(err) // TODO: send to a nats errors channel
 			}
 			for e := range events {
 				natsEncConn.Publish("policy_events", e)
 			}
-		}()
+		}(p)
 	}
 }
 
