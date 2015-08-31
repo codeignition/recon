@@ -71,6 +71,22 @@ func TestRegisterHandler(t *testing.T) {
 	}
 }
 
+func TestRegisterHandlerConcurrent(t *testing.T) {
+	f1 := new(HandlerFunc)
+	f2 := new(HandlerFunc)
+	// This checks for a data race when `go test -race` is executed
+	go func() {
+		err := RegisterHandler("foo", *f1)
+		if err != nil {
+			t.Error(err)
+		}
+	}()
+	err := RegisterHandler("foo", *f2)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestValid(t *testing.T) {
 	p := Policy{
 		Name: "",

@@ -6,6 +6,7 @@ package policy
 
 import (
 	"errors"
+	"sync"
 
 	"golang.org/x/net/context"
 )
@@ -26,13 +27,23 @@ type Config []Policy
 type HandlerFunc func(context.Context, Policy) (<-chan Event, error)
 
 // handlerFuncMap maps a policy type to a handler function
-var handlerFuncMap = make(map[string]HandlerFunc)
+var handlerFuncMap = struct {
+	sync.Mutex
+	m map[string]HandlerFunc
+}{
+	m: make(map[string]HandlerFunc),
+}
 
 func (p Policy) Execute(ctx context.Context) (<-chan Event, error) {
 	if err := p.Valid(); err != nil {
 		return nil, err
 	}
-	return handlerFuncMap[p.Type](ctx, p)
+
+	handlerFuncMap.Lock()
+	f := handlerFuncMap.m[p.Type]
+	handlerFuncMap.Unlock()
+
+	return f(ctx, p)
 }
 
 // Valid checks whether the policy is valid.
@@ -40,7 +51,12 @@ func (p Policy) Valid() error {
 	if p.Name == "" {
 		return errors.New("policy name can't be empty")
 	}
-	if _, ok := handlerFuncMap[p.Type]; !ok {
+
+	handlerFuncMap.Lock()
+	_, ok := handlerFuncMap.m[p.Type]
+	handlerFuncMap.Unlock()
+
+	if !ok {
 		return errors.New("policy type unknown")
 	}
 	return nil
@@ -51,9 +67,13 @@ func RegisterHandler(policyType string, handlerFunc HandlerFunc) error {
 		return errors.New("policy type can't be empty")
 	}
 
-	if _, ok := handlerFuncMap[policyType]; ok {
+	handlerFuncMap.Lock()
+	defer handlerFuncMap.Unlock()
+
+	if _, ok := handlerFuncMap.m[policyType]; ok {
 		return errors.New("handler for the policy type already exists")
 	}
-	handlerFuncMap[policyType] = handlerFunc
+
+	handlerFuncMap.m[policyType] = handlerFunc
 	return nil
 }
