@@ -59,11 +59,3 @@ func (a *Agent) register(addr string) error {
 	}
 	return nil
 }
-
-func (a *Agent) update() {
-	m := &recon.Metric{
-		AgentUID: a.UID,
-		Data:     accumulateData(),
-	}
-	natsEncConn.Publish("marksman_metrics", &m)
-}

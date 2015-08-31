@@ -8,7 +8,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"time"
 
 	"golang.org/x/net/context"
 
@@ -23,10 +22,6 @@ const agentsAPIPath = "/api/agents" // agents path in the marksman server
 // natsEncConn is the opened with the URL obtained from marksman.
 // It is populated if the agent registers successfully.
 var natsEncConn *nats.EncodedConn
-
-// updateInterval is time.Duration that specifies the interval
-// between two consecutive updates.
-const updateInterval = 5 * time.Second
 
 func main() {
 	log.SetPrefix("recond: ")
@@ -51,6 +46,10 @@ func main() {
 	}
 
 	defer natsEncConn.Close()
+
+	if err := addSystemDataPolicy(conf); err != nil {
+		log.Fatal(err)
+	}
 
 	go runStoredPolicies(conf)
 
@@ -79,11 +78,9 @@ func main() {
 		}
 	})
 
-	c := time.Tick(updateInterval)
-	for now := range c {
-		log.Println("Update sent at", now)
-		agent.update()
-	}
+	// this is just to block the main function from exiting
+	c := make(chan struct{})
+	<-c
 }
 
 func runStoredPolicies(c *config.Config) {
@@ -98,4 +95,30 @@ func runStoredPolicies(c *config.Config) {
 			}
 		}()
 	}
+}
+
+func addSystemDataPolicy(c *config.Config) error {
+	// if the policy already exists, return silently
+	for _, p := range c.PolicyConfig {
+		if p.Name == "default_system_data" {
+			return nil
+		}
+	}
+
+	p := policy.Policy{
+		Name:     "default_system_data",
+		AgentUID: c.UID,
+		Type:     "system_data",
+		M: map[string]string{
+			"interval": "5s",
+		},
+	}
+	if err := c.AddPolicy(p); err != nil {
+		return err
+
+	}
+	if err := c.Save(); err != nil {
+		return err
+	}
+	return nil
 }
