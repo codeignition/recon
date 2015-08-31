@@ -75,7 +75,7 @@ func main() {
 		}
 		natsEncConn.Publish(reply, "policy ack") // acknowledge
 		for e := range events {
-			fmt.Printf("%+v\n", e)
+			natsEncConn.Publish("policy_events", e)
 		}
 	})
 
@@ -94,7 +94,7 @@ func runStoredPolicies(c *config.Config) {
 				log.Fatal(err) // TODO: send to a nats errors channel
 			}
 			for e := range events {
-				fmt.Printf("%+v\n", e)
+				natsEncConn.Publish("policy_events", e)
 			}
 		}()
 	}
