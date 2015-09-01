@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"sync"
 
 	"golang.org/x/net/context"
 
@@ -22,6 +23,15 @@ const agentsAPIPath = "/api/agents" // agents path in the marksman server
 // natsEncConn is the opened with the URL obtained from marksman.
 // It is populated if the agent registers successfully.
 var natsEncConn *nats.EncodedConn
+
+// ctxCancelFunc stores the map of policy name to
+// the context cancel function.
+var ctxCancelFunc = struct {
+	sync.Mutex
+	m map[string]context.CancelFunc
+}{
+	m: make(map[string]context.CancelFunc),
+}
 
 func main() {
 	log.SetPrefix("recond: ")
@@ -53,7 +63,7 @@ func main() {
 
 	go runStoredPolicies(conf)
 
-	natsEncConn.Subscribe(agent.UID+"_policy", func(subj, reply string, p *policy.Policy) {
+	natsEncConn.Subscribe(agent.UID+"_policy_add", func(subj, reply string, p *policy.Policy) {
 		fmt.Printf("Received a Policy: %v\n", p)
 		if err := conf.AddPolicy(*p); err != nil {
 			natsEncConn.Publish(reply, err.Error())
@@ -63,15 +73,29 @@ func main() {
 			natsEncConn.Publish(reply, err.Error())
 			return
 		}
-		events, err := p.Execute(context.TODO())
+		ctx, cancel := context.WithCancel(context.Background())
+		events, err := p.Execute(ctx)
 		if err != nil {
 			natsEncConn.Publish(reply, err.Error())
 			return
 		}
-		natsEncConn.Publish(reply, "policy ack") // acknowledge
+		ctxCancelFunc.Lock()
+		ctxCancelFunc.m[p.Name] = cancel
+		ctxCancelFunc.Unlock()
+
+		natsEncConn.Publish(reply, "policy_add_ack") // acknowledge policy add
 		for e := range events {
 			natsEncConn.Publish("policy_events", e)
 		}
+	})
+
+	natsEncConn.Subscribe(agent.UID+"_policy_delete", func(subj, reply string, p *policy.Policy) {
+		ctxCancelFunc.Lock()
+		cancel := ctxCancelFunc.m[p.Name]
+		// TODO: delete policy from conf and remove cancelfunc from map.
+		ctxCancelFunc.Unlock()
+		cancel()
+		natsEncConn.Publish(reply, "policy_delete_ack") // acknowledge policy delete
 	})
 
 	// this is just to block the main function from exiting
@@ -83,10 +107,15 @@ func runStoredPolicies(c *config.Config) {
 	for _, p := range c.PolicyConfig {
 		log.Printf("adding the policy %s...", p.Name)
 		go func(p policy.Policy) {
-			events, err := p.Execute(context.TODO())
+			ctx, cancel := context.WithCancel(context.Background())
+			events, err := p.Execute(ctx)
 			if err != nil {
 				log.Print(err) // TODO: send to a nats errors channel
 			}
+			ctxCancelFunc.Lock()
+			ctxCancelFunc.m[p.Name] = cancel
+			ctxCancelFunc.Unlock()
+
 			for e := range events {
 				natsEncConn.Publish("policy_events", e)
 			}
