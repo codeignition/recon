@@ -53,10 +53,6 @@ func main() {
 
 	go runStoredPolicies(conf)
 
-	natsEncConn.Subscribe(agent.UID, func(s string) {
-		fmt.Printf("Received a message: %s\n", s)
-	})
-
 	natsEncConn.Subscribe(agent.UID+"_policy", func(subj, reply string, p *policy.Policy) {
 		fmt.Printf("Received a Policy: %v\n", p)
 		if err := conf.AddPolicy(*p); err != nil {
