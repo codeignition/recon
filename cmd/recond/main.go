@@ -5,8 +5,8 @@
 package main
 
 import (
+	"errors"
 	"flag"
-	"fmt"
 	"log"
 	"sync"
 
@@ -64,7 +64,7 @@ func main() {
 	go runStoredPolicies(conf)
 
 	natsEncConn.Subscribe(agent.UID+"_policy_add", func(subj, reply string, p *policy.Policy) {
-		fmt.Printf("Received a Policy: %v\n", p)
+		log.Printf("policy_add received: %s\n", p.Name)
 		if err := conf.AddPolicy(*p); err != nil {
 			natsEncConn.Publish(reply, err.Error())
 			return
@@ -90,11 +90,15 @@ func main() {
 	})
 
 	natsEncConn.Subscribe(agent.UID+"_policy_delete", func(subj, reply string, p *policy.Policy) {
+		log.Printf("policy_delete received: %s\n", p.Name)
 		ctxCancelFunc.Lock()
 		cancel := ctxCancelFunc.m[p.Name]
-		// TODO: delete policy from conf and remove cancelfunc from map.
 		ctxCancelFunc.Unlock()
 		cancel()
+		if err := deletePolicy(conf, *p); err != nil {
+			natsEncConn.Publish(reply, err.Error())
+			return
+		}
 		natsEncConn.Publish(reply, "policy_delete_ack") // acknowledge policy delete
 	})
 
@@ -142,6 +146,28 @@ func addSystemDataPolicy(c *config.Config) error {
 	if err := c.AddPolicy(p); err != nil {
 		return err
 
+	}
+	if err := c.Save(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func deletePolicy(c *config.Config, p policy.Policy) error {
+	defer ctxCancelFunc.Unlock()
+	ctxCancelFunc.Lock()
+
+	if _, ok := ctxCancelFunc.m[p.Name]; !ok {
+		return errors.New("policy not found")
+	}
+
+	log.Printf("deleting the policy %s...", p.Name)
+
+	delete(ctxCancelFunc.m, p.Name)
+	for i, q := range c.PolicyConfig {
+		if q.Name == p.Name {
+			c.PolicyConfig = append(c.PolicyConfig[:i], c.PolicyConfig[i+1:]...)
+		}
 	}
 	if err := c.Save(); err != nil {
 		return err
