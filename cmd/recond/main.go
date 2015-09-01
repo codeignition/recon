@@ -84,9 +84,8 @@ func main() {
 }
 
 func runStoredPolicies(c *config.Config) {
-	log.Print("adding stored policies...")
 	for _, p := range c.PolicyConfig {
-		log.Print(p.Name)
+		log.Printf("adding the policy %s...", p.Name)
 		go func(p policy.Policy) {
 			events, err := p.Execute(context.TODO())
 			if err != nil {
