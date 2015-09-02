@@ -63,44 +63,8 @@ func main() {
 
 	go runStoredPolicies(conf)
 
-	natsEncConn.Subscribe(agent.UID+"_policy_add", func(subj, reply string, p *policy.Policy) {
-		log.Printf("policy_add received: %s\n", p.Name)
-		if err := conf.AddPolicy(*p); err != nil {
-			natsEncConn.Publish(reply, err.Error())
-			return
-		}
-		if err := conf.Save(); err != nil {
-			natsEncConn.Publish(reply, err.Error())
-			return
-		}
-		ctx, cancel := context.WithCancel(context.Background())
-		events, err := p.Execute(ctx)
-		if err != nil {
-			natsEncConn.Publish(reply, err.Error())
-			return
-		}
-		ctxCancelFunc.Lock()
-		ctxCancelFunc.m[p.Name] = cancel
-		ctxCancelFunc.Unlock()
-
-		natsEncConn.Publish(reply, "policy_add_ack") // acknowledge policy add
-		for e := range events {
-			natsEncConn.Publish("policy_events", e)
-		}
-	})
-
-	natsEncConn.Subscribe(agent.UID+"_policy_delete", func(subj, reply string, p *policy.Policy) {
-		log.Printf("policy_delete received: %s\n", p.Name)
-		ctxCancelFunc.Lock()
-		cancel := ctxCancelFunc.m[p.Name]
-		ctxCancelFunc.Unlock()
-		cancel()
-		if err := deletePolicy(conf, *p); err != nil {
-			natsEncConn.Publish(reply, err.Error())
-			return
-		}
-		natsEncConn.Publish(reply, "policy_delete_ack") // acknowledge policy delete
-	})
+	natsEncConn.Subscribe(agent.UID+"_policy_add", AddPolicyHandler(conf))
+	natsEncConn.Subscribe(agent.UID+"_policy_delete", DeletePolicyHandler(conf))
 
 	// this is just to block the main function from exiting
 	c := make(chan struct{})
