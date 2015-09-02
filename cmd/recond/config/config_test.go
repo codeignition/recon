@@ -140,14 +140,11 @@ func TestConcurrentAddPolicy(t *testing.T) {
 		Type: "bar",
 	}
 	// this will find any race conditions, if the tests are run using -race flag
+	// we ignore errors as this test only deals with finding out race conditions
 	go func() {
-		if err := c.AddPolicy(p); err != nil {
-			t.Error(err)
-		}
+		c.AddPolicy(p)
 	}()
 	go func() {
-		if err := c.AddPolicy(p); err != nil {
-			t.Error(err)
-		}
+		c.AddPolicy(p)
 	}()
 }

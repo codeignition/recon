@@ -17,6 +17,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"sync"
 
 	"github.com/codeignition/recon/internal/fileutil"
 	"github.com/codeignition/recon/policy"
@@ -38,6 +39,7 @@ func init() {
 // Config represents the configuration for the recond
 // running on a particular machine.
 type Config struct {
+	sync.Mutex
 	UID          string // Unique Identifier to register with marksman
 	PolicyConfig policy.Config
 }
@@ -67,6 +69,8 @@ func Init() (*Config, error) {
 // Save saves the config in a configuration file.
 // If it already exists, it removes it and writes it freshly.
 func (c *Config) Save() error {
+	defer c.Unlock()
+	c.Lock()
 	if fileutil.Exists(configPath) {
 		if err := os.Remove(configPath); err != nil {
 			return err
@@ -98,6 +102,8 @@ func (c *Config) Save() error {
 }
 
 func (c *Config) AddPolicy(p policy.Policy) error {
+	defer c.Unlock()
+	c.Lock()
 	for _, k := range c.PolicyConfig {
 		if k.Name == p.Name {
 			return errors.New("policy with the given name already exists")
