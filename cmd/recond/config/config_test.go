@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/codeignition/recon/internal/fileutil"
+	"github.com/codeignition/recon/policy"
 )
 
 func TestGenerateUID(t *testing.T) {
@@ -130,4 +131,23 @@ func TestSave(t *testing.T) {
 	if err := os.Remove(f.Name()); err != nil {
 		t.Error(err)
 	}
+}
+
+func TestConcurrentAddPolicy(t *testing.T) {
+	c := &Config{}
+	p := policy.Policy{
+		Name: "foo",
+		Type: "bar",
+	}
+	// this will find any race conditions, if the tests are run using -race flag
+	go func() {
+		if err := c.AddPolicy(p); err != nil {
+			t.Error(err)
+		}
+	}()
+	go func() {
+		if err := c.AddPolicy(p); err != nil {
+			t.Error(err)
+		}
+	}()
 }
