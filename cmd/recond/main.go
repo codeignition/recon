@@ -128,6 +128,8 @@ func deletePolicy(c *config.Config, p policy.Policy) error {
 	log.Printf("deleting the policy %s...", p.Name)
 
 	delete(ctxCancelFunc.m, p.Name)
+	defer c.Unlock()
+	c.Lock()
 	for i, q := range c.PolicyConfig {
 		if q.Name == p.Name {
 			c.PolicyConfig = append(c.PolicyConfig[:i], c.PolicyConfig[i+1:]...)
