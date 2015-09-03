@@ -14,7 +14,7 @@ import (
 
 func AddPolicyHandler(conf *config.Config) func(subj, reply string, p *policy.Policy) {
 	return func(subj, reply string, p *policy.Policy) {
-		log.Printf("policy_add received: %s\n", p.Name)
+		log.Printf("add_policy received: %s\n", p.Name)
 		if err := conf.AddPolicy(*p); err != nil {
 			natsEncConn.Publish(reply, err.Error())
 			return
@@ -33,7 +33,7 @@ func AddPolicyHandler(conf *config.Config) func(subj, reply string, p *policy.Po
 		ctxCancelFunc.m[p.Name] = cancel
 		ctxCancelFunc.Unlock()
 
-		natsEncConn.Publish(reply, "policy_add_ack") // acknowledge policy add
+		natsEncConn.Publish(reply, "add_policy_ack") // acknowledge policy add
 		for e := range events {
 			natsEncConn.Publish("policy_events", e)
 		}
@@ -42,7 +42,7 @@ func AddPolicyHandler(conf *config.Config) func(subj, reply string, p *policy.Po
 
 func DeletePolicyHandler(conf *config.Config) func(subj, reply string, p *policy.Policy) {
 	return func(subj, reply string, p *policy.Policy) {
-		log.Printf("policy_delete received: %s\n", p.Name)
+		log.Printf("delete_policy received: %s\n", p.Name)
 		ctxCancelFunc.Lock()
 		cancel := ctxCancelFunc.m[p.Name]
 		ctxCancelFunc.Unlock()
@@ -51,7 +51,7 @@ func DeletePolicyHandler(conf *config.Config) func(subj, reply string, p *policy
 			natsEncConn.Publish(reply, err.Error())
 			return
 		}
-		natsEncConn.Publish(reply, "policy_delete_ack") // acknowledge policy delete
+		natsEncConn.Publish(reply, "delete_policy_ack") // acknowledge policy delete
 	}
 }
 

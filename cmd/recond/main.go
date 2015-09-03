@@ -63,8 +63,8 @@ func main() {
 
 	go runStoredPolicies(conf)
 
-	natsEncConn.Subscribe(agent.UID+"_policy_add", AddPolicyHandler(conf))
-	natsEncConn.Subscribe(agent.UID+"_policy_delete", DeletePolicyHandler(conf))
+	natsEncConn.Subscribe(agent.UID+"_add_policy", AddPolicyHandler(conf))
+	natsEncConn.Subscribe(agent.UID+"_delete_policy", DeletePolicyHandler(conf))
 	natsEncConn.Subscribe(agent.UID+"_modify_policy", ModifyPolicyHandler(conf))
 
 	// this is just to block the main function from exiting
