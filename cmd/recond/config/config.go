@@ -68,9 +68,8 @@ func Init() (*Config, error) {
 
 // Save saves the config in a configuration file.
 // If it already exists, it removes it and writes it freshly.
+// Make sure you lock and unlock the config while calling Save.
 func (c *Config) Save() error {
-	defer c.Unlock()
-	c.Lock()
 	if fileutil.Exists(configPath) {
 		if err := os.Remove(configPath); err != nil {
 			return err
