@@ -65,6 +65,7 @@ func main() {
 
 	natsEncConn.Subscribe(agent.UID+"_policy_add", AddPolicyHandler(conf))
 	natsEncConn.Subscribe(agent.UID+"_policy_delete", DeletePolicyHandler(conf))
+	natsEncConn.Subscribe(agent.UID+"_modify_policy", ModifyPolicyHandler(conf))
 
 	// this is just to block the main function from exiting
 	c := make(chan struct{})
@@ -117,24 +118,24 @@ func addSystemDataPolicy(c *config.Config) error {
 	return nil
 }
 
-func deletePolicy(c *config.Config, p policy.Policy) error {
+func deletePolicy(c *config.Config, policyName string) error {
 	defer ctxCancelFunc.Unlock()
 	ctxCancelFunc.Lock()
 
-	if _, ok := ctxCancelFunc.m[p.Name]; !ok {
+	if _, ok := ctxCancelFunc.m[policyName]; !ok {
 		return errors.New("policy not found")
 	}
+	log.Printf("deleting the policy %s...", policyName)
 
-	log.Printf("deleting the policy %s...", p.Name)
-
-	delete(ctxCancelFunc.m, p.Name)
+	delete(ctxCancelFunc.m, policyName)
 	defer c.Unlock()
 	c.Lock()
 	for i, q := range c.PolicyConfig {
-		if q.Name == p.Name {
+		if q.Name == policyName {
 			c.PolicyConfig = append(c.PolicyConfig[:i], c.PolicyConfig[i+1:]...)
 		}
 	}
+
 	if err := c.Save(); err != nil {
 		return err
 	}

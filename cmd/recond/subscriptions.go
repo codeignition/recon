@@ -47,10 +47,52 @@ func DeletePolicyHandler(conf *config.Config) func(subj, reply string, p *policy
 		cancel := ctxCancelFunc.m[p.Name]
 		ctxCancelFunc.Unlock()
 		cancel()
-		if err := deletePolicy(conf, *p); err != nil {
+		if err := deletePolicy(conf, p.Name); err != nil {
 			natsEncConn.Publish(reply, err.Error())
 			return
 		}
 		natsEncConn.Publish(reply, "policy_delete_ack") // acknowledge policy delete
+	}
+}
+
+func ModifyPolicyHandler(conf *config.Config) func(subj, reply string, p *policy.Policy) {
+	return func(subj, reply string, p *policy.Policy) {
+		log.Printf("modify_policy received: %s\n", p.Name)
+
+		// We receive the complete policy with the new values
+		// and delete the old policy and stop its execution.
+		// Then we add the new policy.
+		ctxCancelFunc.Lock()
+		cancel := ctxCancelFunc.m[p.Name]
+		ctxCancelFunc.Unlock()
+		cancel()
+		if err := deletePolicy(conf, p.Name); err != nil {
+			log.Print(err)
+			natsEncConn.Publish(reply, err.Error())
+			return
+		}
+		log.Printf("adding the policy %s...", p.Name)
+		if err := conf.AddPolicy(*p); err != nil {
+			natsEncConn.Publish(reply, err.Error())
+			return
+		}
+		if err := conf.Save(); err != nil {
+			natsEncConn.Publish(reply, err.Error())
+			return
+		}
+		ctx, cancel := context.WithCancel(context.Background())
+		events, err := p.Execute(ctx)
+		if err != nil {
+			natsEncConn.Publish(reply, err.Error())
+			return
+		}
+		ctxCancelFunc.Lock()
+		ctxCancelFunc.m[p.Name] = cancel
+		ctxCancelFunc.Unlock()
+
+		natsEncConn.Publish(reply, "modify_policy_ack") // acknowledge policy delete
+		for e := range events {
+			natsEncConn.Publish("policy_events", e)
+		}
 	}
 }
