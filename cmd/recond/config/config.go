@@ -110,8 +110,6 @@ func (c *Config) AddPolicy(p policy.Policy) error {
 		}
 	}
 	c.PolicyConfig = append(c.PolicyConfig, p)
-	// TODO: possible race condition. Use a mutex lock while
-	// writing to the slice PolicyConfig.
 	return nil
 }
 
