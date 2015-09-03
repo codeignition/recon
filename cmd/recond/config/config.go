@@ -41,6 +41,7 @@ func init() {
 type Config struct {
 	sync.Mutex
 	UID          string // Unique Identifier to register with marksman
+	HostName     string
 	PolicyConfig policy.Config
 }
 
@@ -59,8 +60,13 @@ func Init() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	h, err := os.Hostname()
+	if err != nil {
+		return nil, err
+	}
 	c := &Config{
-		UID: uid,
+		UID:      uid,
+		HostName: h,
 	}
 	err = c.Save()
 	return c, err

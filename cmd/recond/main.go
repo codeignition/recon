@@ -47,7 +47,8 @@ func main() {
 	// agent represents a single agent on which the recond
 	// is running.
 	var agent = &Agent{
-		UID: conf.UID,
+		UID:      conf.UID,
+		HostName: conf.HostName,
 	}
 
 	err = agent.register(*marksmanAddr)
