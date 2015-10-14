@@ -48,7 +48,16 @@ func (a *Agent) register(addr string) error {
 	if err := dec.Decode(&t); err != nil {
 		return err
 	}
-	nc, err := nats.Connect(t.NatsURL)
+
+	// Override the obtained NATS address with the one obtained from the command line flag.
+	var naddr string
+	if *flagNATSAddr == "" {
+		naddr = t.NatsURL
+	} else {
+		naddr = *flagNATSAddr
+	}
+
+	nc, err := nats.Connect(naddr)
 	if err != nil {
 		return err
 	}

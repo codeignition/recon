@@ -33,10 +33,14 @@ var ctxCancelFunc = struct {
 	m: make(map[string]context.CancelFunc),
 }
 
+var (
+	flagNATSAddr     = flag.String("nats", "", "address of the nats server, use only if you want to override the URL obtained from marksman")
+	flagMarksmanAddr = flag.String("marksman", "http://localhost:3000", "address of the marksman server")
+)
+
 func main() {
 	log.SetPrefix("recond: ")
 
-	var marksmanAddr = flag.String("marksman", "http://localhost:3000", "address of the marksman server")
 	flag.Parse()
 
 	conf, err := config.Init()
@@ -51,7 +55,7 @@ func main() {
 		HostName: conf.HostName,
 	}
 
-	err = agent.register(*marksmanAddr)
+	err = agent.register(*flagMarksmanAddr)
 	if err != nil {
 		log.Fatalln(err)
 	}
