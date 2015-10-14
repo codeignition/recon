@@ -10,8 +10,7 @@ import (
 	"os/user"
 	"time"
 
-	"github.com/codeignition/recon/metrics/netstat"
-	"github.com/codeignition/recon/metrics/ps"
+	"github.com/codeignition/recon/metrics/memory"
 	"github.com/codeignition/recon/policy"
 	"golang.org/x/net/context"
 )
@@ -56,19 +55,14 @@ func accumulateSystemData() map[string]interface{} {
 	if err != nil {
 		log.Println(err)
 	}
-	psdata, err := ps.CollectData()
-	if err != nil {
-		log.Println(err)
-	}
-	nsdata, err := netstat.CollectData()
+	memdata, err := memory.CollectData()
 	if err != nil {
 		log.Println(err)
 	}
 	data := map[string]interface{}{
-		"recon_time":         time.Now(),
-		"current_user":       currentUser.Username, // if more data is required, use currentUser instead of just the Username field
-		"process_statistics": psdata,
-		"network_statistics": nsdata,
+		"recon_time":   time.Now(),
+		"current_user": currentUser.Username,
+		"memory":       memdata,
 	}
 	return data
 }
