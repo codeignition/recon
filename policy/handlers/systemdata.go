@@ -7,10 +7,9 @@ package handlers
 import (
 	"errors"
 	"log"
-	"os/user"
 	"time"
 
-	"github.com/codeignition/recon/metrics/memory"
+	"github.com/codeignition/recon/metrics/top"
 	"github.com/codeignition/recon/policy"
 	"golang.org/x/net/context"
 )
@@ -40,9 +39,10 @@ func SystemData(ctx context.Context, p policy.Policy) (<-chan policy.Event, erro
 				return
 			case <-t.C:
 				out <- policy.Event{
-					Time:   time.Now(),
-					Policy: p,
-					Data:   accumulateSystemData(),
+					Time:       time.Now(),
+					PolicyName: p.Name,
+					AgentUID:   p.AgentUID,
+					Data:       accumulateSystemData(),
 				}
 			}
 		}
@@ -50,19 +50,10 @@ func SystemData(ctx context.Context, p policy.Policy) (<-chan policy.Event, erro
 	return out, nil
 }
 
-func accumulateSystemData() map[string]interface{} {
-	currentUser, err := user.Current()
+func accumulateSystemData() interface{} {
+	d, err := top.CollectData()
 	if err != nil {
-		log.Println(err)
+		log.Print(err)
 	}
-	memdata, err := memory.CollectData()
-	if err != nil {
-		log.Println(err)
-	}
-	data := map[string]interface{}{
-		"recon_time":   time.Now(),
-		"current_user": currentUser.Username,
-		"memory":       memdata,
-	}
-	return data
+	return d
 }

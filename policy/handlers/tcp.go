@@ -55,8 +55,9 @@ func TCP(ctx context.Context, p policy.Policy) (<-chan policy.Event, error) {
 				_, err := net.DialTimeout("tcp", addr, d)
 				if err != nil {
 					out <- policy.Event{
-						Time:   time.Now(),
-						Policy: p,
+						Time:       time.Now(),
+						PolicyName: p.Name,
+						AgentUID:   p.AgentUID,
 						Data: map[string]interface{}{
 							"status": "failure",
 							"error":  err.Error(),
@@ -64,8 +65,9 @@ func TCP(ctx context.Context, p policy.Policy) (<-chan policy.Event, error) {
 					}
 				} else {
 					out <- policy.Event{
-						Time:   time.Now(),
-						Policy: p,
+						Time:       time.Now(),
+						PolicyName: p.Name,
+						AgentUID:   p.AgentUID,
 						Data: map[string]interface{}{
 							"status": "success",
 						},
