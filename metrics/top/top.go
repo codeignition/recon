@@ -14,12 +14,10 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // Data represents the `top` data
 type Data struct {
-	Time    time.Time
 	Uptime  string
 	CPU     CPUData
 	Memory  MemoryData
@@ -67,7 +65,6 @@ func CollectData() (*Data, error) {
 	if err != nil {
 		return nil, err
 	}
-	d.Time = time.Now()
 	lines := strings.Split(string(out), "\n") // use a bufio.Scanner if memory problems arise
 	if len(lines) < 7 {
 		return nil, errors.New("top: unexpected output")
