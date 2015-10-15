@@ -8,7 +8,8 @@ import "time"
 
 // Event data that will be sent by policy handlers
 type Event struct {
-	Time   time.Time
-	Policy Policy
-	Data   map[string]interface{} // Data may include status, stats, etc.
+	Time       time.Time
+	PolicyName string      `bson:"policy_name"`
+	AgentUID   string      `bson:"agent_uid"`
+	Data       interface{} // Data may include status, stats, etc.
 }
