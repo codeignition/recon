@@ -61,7 +61,9 @@ type SwapData struct {
 // an error if any.
 func CollectData() (*Data, error) {
 	d := new(Data)
-	out, err := exec.Command("top", "-bn", "1").Output()
+	count := 0 // count of the top output iteration
+	iters := 2 // number of iterations that top command should collect
+	out, err := exec.Command("top", "-bn", strconv.Itoa(iters)).Output()
 	if err != nil {
 		return nil, err
 	}
@@ -69,33 +71,40 @@ func CollectData() (*Data, error) {
 	if len(lines) < 7 {
 		return nil, errors.New("top: unexpected output")
 	}
+	base := 0
 	for i, line := range lines {
-		switch i {
-		case 0:
-			err := d.parseUptimeLoadAvgData(line)
-			if err != nil {
-				return nil, err
+		if strings.HasPrefix(line, "top") {
+			count++
+			base = i
+		}
+		if count == iters {
+			switch i - base {
+			case 0:
+				err := d.parseUptimeLoadAvgData(line)
+				if err != nil {
+					return nil, err
+				}
+			case 1:
+				// we are not collecting the tasks data for now
+				continue
+			case 2:
+				err := d.parseCPUData(line)
+				if err != nil {
+					return nil, err
+				}
+			case 3:
+				err := d.parseMemoryData(line)
+				if err != nil {
+					return nil, err
+				}
+			case 4:
+				err := d.parseSwapData(line)
+				if err != nil {
+					return nil, err
+				}
+			default:
+				break
 			}
-		case 1:
-			// we are not collecting the tasks data for now
-			continue
-		case 2:
-			err := d.parseCPUData(line)
-			if err != nil {
-				return nil, err
-			}
-		case 3:
-			err := d.parseMemoryData(line)
-			if err != nil {
-				return nil, err
-			}
-		case 4:
-			err := d.parseSwapData(line)
-			if err != nil {
-				return nil, err
-			}
-		default:
-			break
 		}
 	}
 	return d, nil
