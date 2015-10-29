@@ -9,7 +9,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/codeignition/recon/metrics/top"
+	"github.com/codeignition/recon/metrics/system"
 	"github.com/codeignition/recon/policy"
 	"golang.org/x/net/context"
 )
@@ -51,9 +51,12 @@ func SystemData(ctx context.Context, p policy.Policy) (<-chan policy.Event, erro
 }
 
 func accumulateSystemData() interface{} {
-	d, err := top.CollectData()
+	d, err := system.CollectData()
 	if err != nil {
 		log.Print(err)
 	}
-	return d
+	a := map[string]interface{}{
+		"system": d,
+	}
+	return a
 }

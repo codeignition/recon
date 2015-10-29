@@ -16,60 +16,21 @@ import (
 	"strings"
 )
 
-// Data represents the `top` data
-type Data struct {
-	Uptime  string
-	CPU     CPUData
-	Memory  MemoryData
-	Swap    SwapData
-	LoadAvg LoadAverageData
-}
-
-// CPU represents the percentage CPU usages, averaged over the cores
-type CPUData struct {
-	Userspace,
-	Idle,
-	System,
-	IOWait,
-	Stolen float64
-}
-
-// LoadAverageData for the last 1min, 5mins, 15mins
-type LoadAverageData struct {
-	LastOneMin,
-	LastFiveMin,
-	LastFifteenMin float64
-}
-
-// MemoryData represents the memory data in kilobytes
-type MemoryData struct {
-	Total,
-	Used,
-	Free,
-	Buffers,
-	Cached int
-}
-
-// SwapData represents the swap memory data in kilobytes
-type SwapData struct {
-	Total,
-	Used,
-	Free int
-}
+type Data map[string]interface{}
 
 // CollectData collects the data and returns
 // an error if any.
-func CollectData() (*Data, error) {
-	d := new(Data)
+func CollectData() (Data, error) {
+	d := make(Data)
 	count := 0 // count of the top output iteration
 	iters := 2 // number of iterations that top command should collect
 	out, err := exec.Command("top", "-bn", strconv.Itoa(iters)).Output()
 	if err != nil {
-		return nil, err
+		return d, err
 	}
 	lines := strings.Split(string(out), "\n") // use a bufio.Scanner if memory problems arise
 	if len(lines) < 7 {
-		return nil, errors.New("top: unexpected output")
+		return d, errors.New("top: unexpected output")
 	}
 	base := 0
 	for i, line := range lines {
@@ -82,7 +43,7 @@ func CollectData() (*Data, error) {
 			case 0:
 				err := d.parseUptimeLoadAvgData(line)
 				if err != nil {
-					return nil, err
+					return d, err
 				}
 			case 1:
 				// we are not collecting the tasks data for now
@@ -90,17 +51,17 @@ func CollectData() (*Data, error) {
 			case 2:
 				err := d.parseCPUData(line)
 				if err != nil {
-					return nil, err
+					return d, err
 				}
 			case 3:
 				err := d.parseMemoryData(line)
 				if err != nil {
-					return nil, err
+					return d, err
 				}
 			case 4:
 				err := d.parseSwapData(line)
 				if err != nil {
-					return nil, err
+					return d, err
 				}
 			default:
 				break
@@ -110,7 +71,7 @@ func CollectData() (*Data, error) {
 	return d, nil
 }
 
-func (d *Data) parseUptimeLoadAvgData(s string) error {
+func (d Data) parseUptimeLoadAvgData(s string) error {
 	a := strings.SplitN(s, "load average: ", 2)
 	b := strings.SplitN(a[0], "up", 2)
 	t := strings.SplitN(b[1], "users", 2)
@@ -119,7 +80,7 @@ func (d *Data) parseUptimeLoadAvgData(s string) error {
 	if i == -1 {
 		return errors.New("top: unable to parse uptime data")
 	}
-	d.Uptime = c[:i]
+	d["uptime"] = c[:i]
 	l := strings.Split(a[1], ",")
 	if len(l) != 3 {
 		return errors.New("top: unexpected number of load averages found")
@@ -132,15 +93,15 @@ func (d *Data) parseUptimeLoadAvgData(s string) error {
 			return err
 		}
 	}
-	d.LoadAvg = LoadAverageData{
-		LastOneMin:     f[0],
-		LastFiveMin:    f[1],
-		LastFifteenMin: f[2],
+	d["load_average"] = Data{
+		"last_1_min":  f[0],
+		"last_5_min":  f[1],
+		"last_15_min": f[2],
 	}
 	return nil
 }
 
-func (d *Data) parseCPUData(s string) error {
+func (d Data) parseCPUData(s string) error {
 	a := strings.TrimPrefix(s, "%Cpu(s): ")
 	a = strings.TrimPrefix(a, "Cpu(s): ") // some systems have the prefix Cpu(s): without the % sign
 	b := strings.Split(a, ",")
@@ -156,54 +117,53 @@ func (d *Data) parseCPUData(s string) error {
 			return err
 		}
 	}
-	d.CPU = CPUData{
-		Userspace: c[0],
-		Idle:      c[3],
-		System:    c[1],
-		IOWait:    c[4],
-		Stolen:    c[7],
+	d["cpu"] = Data{
+		"userspace": c[0],
+		"idle":      c[3],
+		"system":    c[1],
+		"iowait":    c[4],
+		"stolen":    c[7],
 	}
 	return nil
 }
 
-func (d *Data) parseMemoryData(s string) error {
+func (d Data) parseMemoryData(s string) error {
+	var total, used, free, buffers int
+	var err error
 	if strings.HasPrefix(s, "KiB Mem:") {
-		var m MemoryData
-		_, err := fmt.Sscanf(s, "KiB Mem:\t%d total,\t%d used,\t%d free,\t%d buffers", &m.Total, &m.Used, &m.Free, &m.Buffers)
-		if err != nil {
-			return fmt.Errorf("top: unable to parse memory data; %s", err)
-		}
-		d.Memory = m
-		return nil
+		_, err = fmt.Sscanf(s, "KiB Mem:\t%d total,\t%d used,\t%d free,\t%d buffers", &total, &used, &free, &buffers)
 	} else if strings.HasPrefix(s, "Mem:") {
-		var m MemoryData
-		_, err := fmt.Sscanf(s, "Mem:\t%dk total,\t%dk used,\t%dk free,\t%dk buffers", &m.Total, &m.Used, &m.Free, &m.Buffers)
-		if err != nil {
-			return fmt.Errorf("top: unable to parse memory data; %s", err)
-		}
-		d.Memory = m
-		return nil
+		_, err = fmt.Sscanf(s, "Mem:\t%dk total,\t%dk used,\t%dk free,\t%dk buffers", &total, &used, &free, &buffers)
 	}
-	return errors.New("top: unable to parse memory data")
+	if err != nil {
+		return fmt.Errorf("top: unable to parse memory data; %s", err)
+	}
+	d["memory"] = Data{
+		"total":   total,
+		"used":    used,
+		"free":    free,
+		"buffers": buffers,
+	}
+	return nil
 }
 
-func (d *Data) parseSwapData(s string) error {
+func (d Data) parseSwapData(s string) error {
+	var total, used, free, cached int
+	var err error
 	if strings.HasPrefix(s, "KiB Swap:") {
-		var sd SwapData
-		_, err := fmt.Sscanf(s, "KiB Swap:\t%d total,\t%d used,\t%d free.\t%d cached Mem", &sd.Total, &sd.Used, &sd.Free, &d.Memory.Cached)
-		if err != nil {
-			return fmt.Errorf("top: unable to parse swap data; %s", err)
-		}
-		d.Swap = sd
-		return nil
+		_, err = fmt.Sscanf(s, "KiB Swap:\t%d total,\t%d used,\t%d free.\t%d cached Mem", &total, &used, &free, &cached)
 	} else if strings.HasPrefix(s, "Swap:") {
-		var sd SwapData
-		_, err := fmt.Sscanf(s, "Swap:\t%dk total,\t%dk used,\t%dk free,\t%dk cached", &sd.Total, &sd.Used, &sd.Free, &d.Memory.Cached)
-		if err != nil {
-			return fmt.Errorf("top: unable to parse swap data; %s", err)
-		}
-		d.Swap = sd
-		return nil
+		_, err = fmt.Sscanf(s, "Swap:\t%dk total,\t%dk used,\t%dk free,\t%dk cached", &total, &used, &free, &cached)
 	}
-	return errors.New("top: unable to parse swap data")
+	if err != nil {
+		return fmt.Errorf("top: unable to parse swap data; %s", err)
+	}
+	d["swap"] = Data{
+		"total": total,
+		"used":  used,
+		"free":  free,
+	}
+	mem := d["memory"].(Data)
+	mem["cached"] = cached
+	return nil
 }
